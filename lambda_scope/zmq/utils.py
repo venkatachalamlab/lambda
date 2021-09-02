@@ -3,8 +3,7 @@
 # Copyright 2021
 # Author: Mahdi Torkashvand, Vivek Venkatachalam
 
-"""This module contains utilities for converting
-between types used in other zmq modules."""
+"""This module contains utilities used in zmq modules."""
 
 from typing import Union, Tuple
 
@@ -75,7 +74,7 @@ def get_last(receiver):
 
 
 def parse_host_and_port(val: str) -> Tuple[str, int, bool]:
-    """ This takes a command line argument specifying a host/port and returns
+    """This takes a command line argument specifying a host/port and returns
     a tuple of (host, port, bound) to determine a TCP endpoint:
 
     5000            -> ("*", 5000, True)
