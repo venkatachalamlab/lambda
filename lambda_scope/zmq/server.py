@@ -31,13 +31,12 @@ class Server():
             port: int,
             name="Server"):
 
-        self.port = port
         self.name = name
 
         self.context = zmq.Context.instance()
         self.socket = self.context.socket(zmq.REP)
 
-        address = "tcp://*:{}".format(self.port)
+        address = "tcp://*:{}".format(port)
         self.socket.bind(address)
 
         self.running = False
@@ -117,8 +116,8 @@ def main():
     args = docopt(__doc__)
     port = int(args["--port"])
 
-    x = Server(port)
-    x.run()
+    server = Server(port)
+    server.run()
 
 if __name__ == "__main__":
     main()
