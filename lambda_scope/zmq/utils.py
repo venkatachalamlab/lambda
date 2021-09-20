@@ -5,6 +5,8 @@
 
 """This module contains utilities used in zmq modules."""
 
+import time
+import struct
 from typing import Union, Tuple
 
 import zmq
@@ -104,3 +106,16 @@ def parse_host_and_port(val: str) -> Tuple[str, int, bool]:
         bound = host == "*"
 
     return (host, port, bound)
+
+def push_timestamp(msg: bytes) -> bytes:
+    """ This prepends a timestamp returned by python's time.time() as a double
+    to the buffer specified by msg."""
+    now = struct.pack('d', time.time())
+    return msg + now
+
+def pop_timestamp(msg: bytes) -> Tuple[float, bytes]:
+    """ This pulls out a timestamp as returned by python's time.time() from the
+    front of a message."""
+    (timestamp, msg) = (msg[-8:], msg[:-8])
+    timestamp = struct.unpack('d', timestamp)[0]
+    return (timestamp, msg)

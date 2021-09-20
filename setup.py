@@ -9,11 +9,13 @@ requirements = [
 console_scripts = [
     'lambda_client=lambda_scope.zmq.client:main',
     'lambda_forwarder=lambda_scope.zmq.forwarder:main',
-    'lambda_hub=lambda_scope.zmq.hub:main',
+    'lambda_hub=lambda_scope.devices.hub_relay:main',
     'lambda_publisher=lambda_scope.zmq.publisher:main',
     'lambda_server=lambda_scope.zmq.server:main',
     'lambda_subscriber=lambda_scope.zmq.subscriber:main',
-    'lambda_logger=lambda_scope.devices.logger:main'
+    'lambda_logger=lambda_scope.devices.logger:main',
+    'lambda_displayer=lambda_scope.devices.displayer:main',
+    'lambda=lambda_scope.system.lambda:main'
 ]
 
 setuptools.setup(

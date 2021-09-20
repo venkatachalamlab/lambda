@@ -18,7 +18,7 @@ Options:
                            [default: ]
 """
 
-from datetime import datetime
+import time
 
 import zmq
 from docopt import docopt
@@ -58,12 +58,12 @@ class Logger():
 
             msg = self.prepend_timestamp(msg)
             print(msg, file=self.file)
-        
+
         self.file.close()
 
     def prepend_timestamp(self, msg: str) -> str:
         """Adds date and time to the string argument."""
-        return "{} {}".format(str(datetime.now().time()), msg)
+        return "{} {}".format(str(time.time()), msg)
 
 def main():
     """main function"""

@@ -34,7 +34,6 @@ class DAQDevice():
 
         self.serial_num = serial_num
         self.board_num = board_num
-        self.running = False
 
         if not self.board_num:
             ul.ignore_instacal()
@@ -42,13 +41,17 @@ class DAQDevice():
         self.configure_daq_device()
 
         self.ao_props = AnalogOutputProps(self.board_num)
-        self.ai_props = AnalogInputProps(self.board_num)
         self.ao_range = self.ao_props.available_ranges[0]
+
+        self.ai_props = AnalogInputProps(self.board_num)
         self.ai_range = self.ai_props.available_ranges[0]
 
         self.d_props = DigitalProps(self.board_num)
         self.d_port = self.d_props.port_info[0]
+
         ul.d_config_port(self.board_num, self.d_port.type, DigitalIODirection.OUT)
+
+        ul.set_trigger(self.board_num, TrigType.TRIG_HIGH, 0, 1)
 
     def configure_daq_device(self):
         """Create a device object within the Universal Library
@@ -61,12 +64,8 @@ class DAQDevice():
                     ul.create_daq_device(self.board_num, device)
                     print("DAQ {}: Initialized.".format(self.serial_num))
                     ul.a_input_mode(self.board_num, AnalogInputMode.SINGLE_ENDED)
-                    return True
             print("DAQ {}: Not Found.".format(self.serial_num))
-            return False
         print("No DAQ Device Found.")
-        return False
-
 
     def v_out(self, chan_num, voltage_value):
         """Output voltage_value from channel chan_num."""
@@ -83,10 +82,6 @@ class DAQDevice():
             util.print_ul_error(_e)
         return input_voltage
 
-    def a_in(self, chan_num, threshold=0.2):
-        """Return True if the input voltage is larger than threshold."""
-        return True if self.v_in(chan_num) > threshold else False
-
     def d_out(self, port_value):
         """Outputs port_value from the digital port"""
         try:
@@ -98,27 +93,6 @@ class DAQDevice():
         """Outputs the bit_value (0 or 1) from bit bit_num"""
         try:
             ul.d_bit_out(self.board_num, self.d_port.type, bit_num, bit_value)
-        except ULError as _e:
-            util.print_ul_error(_e)
-
-    def set_trigger(self, trigger_type, low_threshold, high_threshold):
-        """Selects the trigger source and sets up its parameters
-        trigger_type values:
-        10 : TrigType.TRIG_HIGH,
-        11 : TrigType.TRIG_LOW,
-        12 : TrigType.TRIG_POS_EDGE,
-        13 : TrigType.TRIG_NEG_EDGE
-        """
-
-        trg_dict = {10 : TrigType.TRIG_HIGH,
-                    11 : TrigType.TRIG_LOW,
-                    12 : TrigType.TRIG_POS_EDGE,
-                    13 : TrigType.TRIG_NEG_EDGE}
-        try:
-            ul.set_trigger(self.board_num,
-                           trg_dict[trigger_type],
-                           low_threshold,
-                           high_threshold)
         except ULError as _e:
             util.print_ul_error(_e)
 
@@ -146,17 +120,6 @@ class DAQDevice():
             util.print_ul_error(_e)
         return output_rate
 
-    def a_in_d_out(self):
-        while self.running:
-            self.d_out(self.a_in(0) + 2 * self.a_in(1) + 4 * self.a_in(2) + 8 * self.a_in(3))
-
-    def d_out_scan(self):
-        """Read input analog signals, at them to make a 4 bit number and ouput it."""
-        self.running = True
-        thread = threading.Thread(target=self.a_in_d_out)
-        thread.daemon = True
-        thread.start()
-
     def stop_background(self):
         """Stops one or more subsystem background operations that are in progress for
         the specified board. Use this function to stop any function that is running in
@@ -164,7 +127,6 @@ class DAQDevice():
         :const:~pyulmcculwms.ScanOptions.BACKGROUND option."""
         try:
             ul.stop_background(self.board_num, FunctionType.AOFUNCTION)
-            self.running = False
         except ULError as _e:
             util.print_ul_error(_e)
 
@@ -181,8 +143,8 @@ class DAQDevice():
 
     def fill_ctypes_array(self, index, voltage_value):
         """Converts the voltage_value and uses index to fill the array."""
-        raw_value = ul.from_eng_units(self.board_num, self.ao_range, voltage_value)
-        self.ctypes_array[index] = raw_value
+        value = ul.from_eng_units(self.board_num, self.ao_range, voltage_value)
+        self.ctypes_array[index] = value
 
     def free_buffer(self):
         """Frees a Windows global memory buffer which was previously allocated with
@@ -200,7 +162,6 @@ class DAQDevice():
             ul.release_daq_device(self.board_num)
         except ULError as _e:
             util.print_ul_error(_e)
-
 
     def shutdown(self):
         """Shuts down the device."""

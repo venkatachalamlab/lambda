@@ -19,7 +19,7 @@ import signal
 import zmq
 from docopt import docopt
 
-from lambda_scope.zmq.utils import(
+from lambda_scope.zmq.utils import (
     coerce_string,
     coerce_bytes
 )
