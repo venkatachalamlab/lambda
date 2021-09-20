@@ -84,9 +84,9 @@ def execute(job, fmt: str, camera: str):
                       "--inbound="+ forwarder_out,
                       "--directory=C:/src/data/data_writer"]))
 
-    # job.append(Popen(["dragonfly",
-    #                   "--inbound=L" + forwarder_out,
-    #                   "--outbound=L"+ forwarder_in]))
+    job.append(Popen(["lambda_dragonfly",
+                      "--inbound=L" + forwarder_out,
+                      "--outbound=L"+ forwarder_in]))
 
     # job.append(Popen(["experiment_runner_v2",
     #                   "--inbound=L" + forwarder_out,

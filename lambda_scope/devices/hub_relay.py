@@ -149,25 +149,23 @@ class LambdaHub(Hub):
     #     # DAQ should stop after the camera,
     #     self._daq_stop()
 
-    # def update(self):
-    #     "Asks devices to publsih their status."
+    def update_status(self):
+        "Asks devices to publsih their status."
 
     #     self._noise_filter_publish_status()
     #     self._hdf_writer_publish_status()
     #     self._binary_writer_publish_status()
-    #     self._mip_maker_publish_status()
-    #     self._dragonfly_publish_status()
+        self._dragonfly_publish_status()
     #     self._daq_publish_status()
     #     self._camera_publish_status()
     #     self._runner_publish_status()
     #     self._valve_publish_status()
 
-
-
     def shutdown(self):
         """Send shutdown command to all devices."""
+
         self._displayer_shutdown()
-    #     self._dragonfly_shutdown()
+        self._dragonfly_shutdown()
     #     self._hdf_writer_shutdown()
     #     self._binary_writer_shutdown()
     #     self._mip_maker_shutdown()
@@ -194,6 +192,36 @@ class LambdaHub(Hub):
         for i in self.cameras:
             name = "displayer{}".format(i)
             self.send("{} shutdown".format(name))
+
+    def _dragonfly_shutdown(self):
+        self.send("dragonfly shutdown")
+
+    def _dragonfly_publish_status(self):
+        self.send("dragonfly publish_status")
+
+    def _dragonfly_set_disk_dichroic(self, pos):
+        self.send("dragonfly set_disk_dichroic {}".format(pos))
+
+    def _dragonfly_set_emission_dichroic(self, pos):
+        self.send("dragonfly set_emission_dichroic {}".format(pos))
+
+    def _dragonfly_set_filter_speed(self, port, speed):
+        self.send("dragonfly set_filter_speed {} {}".format(port, speed))
+
+    def _dragonfly_set_filter(self, port, pos):
+        self.send("dragonfly set_filter {} {}".format(port, pos))
+
+    def _dragonfly_set_fieldstop(self, pos):
+        self.send("dragonfly set_fieldstop {}".format(pos))
+
+    def _dragonfly_set_imaging_mode(self, mode):
+        self.send("dragonfly set_imaging_mode {}".format(mode))
+
+    def _dragonfly_set_disk_speed(self, speed):
+        self.send("dragonfly set_disk_speed {}".format(speed))
+
+    def _dragonfly_set_standby(self, mode):
+        self.send("dragonfly set_standby {}".format(mode))
 
 ######  These send the commands to the noise_filter device(s).
 
@@ -393,35 +421,7 @@ class LambdaHub(Hub):
 
 ######  These send the commands to the dragonfly_device.
 
-    # def _dragonfly_shutdown(self):
-    #     self.send("dragonfly shutdown")
 
-    # def _dragonfly_publish_status(self):
-    #     self.send("dragonfly publish_status")
-
-    # def _dragonfly_set_disk_dichroic(self, pos):
-    #     self.send("dragonfly set_disk_dichroic {}".format(pos))
-
-    # def _dragonfly_set_emission_dichroic(self, pos):
-    #     self.send("dragonfly set_emission_dichroic {}".format(pos))
-
-    # def _dragonfly_set_filter_speed(self, port, speed):
-    #     self.send("dragonfly set_filter_speed {} {}".format(port, speed))
-
-    # def _dragonfly_set_filter(self, port, pos):
-    #     self.send("dragonfly set_filter {} {}".format(port, pos))
-
-    # def _dragonfly_set_fieldstop(self, pos):
-    #     self.send("dragonfly set_fieldstop {}".format(pos))
-
-    # def _dragonfly_set_imaging_mode(self, mode):
-    #     self.send("dragonfly set_imaging_mode {}".format(mode))
-
-    # def _dragonfly_set_disk_speed(self, speed):
-    #     self.send("dragonfly set_disk_speed {}".format(speed))
-
-    # def _dragonfly_set_standby(self, mode):
-    #     self.send("dragonfly set_standby {}".format(mode))
 
 ######  These send the commands to the laser.
 

@@ -15,6 +15,7 @@ console_scripts = [
     'lambda_subscriber=lambda_scope.zmq.subscriber:main',
     'lambda_logger=lambda_scope.devices.logger:main',
     'lambda_displayer=lambda_scope.devices.displayer:main',
+    'lambda_dragonfly=lambda_scope.devices.dragonfly:main',
     'lambda=lambda_scope.system.lambda:main'
 ]
 
