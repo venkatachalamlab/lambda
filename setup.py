@@ -17,6 +17,7 @@ console_scripts = [
     'lambda_dragonfly=lambda_scope.devices.dragonfly:main',
     'lambda_acquisition_board=lambda_scope.devices.acquisition_board:main',
     'lambda_displayer=lambda_scope.devices.displayer:main',
+    'lambda_data_hub=lambda_scope.devices.data_hub:main',
     'lambda=lambda_scope.system.lambda:main'
 ]
 

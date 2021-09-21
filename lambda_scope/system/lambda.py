@@ -48,7 +48,7 @@ def execute(job, fmt: str, camera: str):
     obound = str(5001)
     server = str(5002)
 
-    # data_cam = 5003
+    data_cam = 5003
     data_stamped = 5005
 
     # (_, _, shape) = array_props_from_string(fmt)
@@ -111,23 +111,13 @@ def execute(job, fmt: str, camera: str):
                           "--commands=L" + obound,
                           "--name=displayer"+ str(camera_number)]))
 
-
-    #     job.append(Popen(["timer",
-    #                       "--inbound_commands=L" + forwarder_out,
-    #                       "--outbound_commands=L" + forwarder_in,
-    #                       "--inbound=L" + str(data_stacker + index-1),
-    #                       "--outbound=" + str(data_timer + index-1),
-    #                       "--imaging=" + str(imaging),
-    #                       "--resting=" + str(resting)]))
-
-
-    #     job.append(Popen(["noise_filter",
-    #                       "--data_in=L" + str(data_cam +  index-1),
-    #                       "--commands_in=L" + forwarder_out,
-    #                       "--data_out=" + str(data_stacker + index-1),
-    #                       "--status_out=localhost:" + forwarder_in,
-    #                       "--format=" + fmt,
-    #                       "--name=noise_filter"+ str(index)]))
+        job.append(Popen(["lambda_data_hub",
+                          "--data_in=L" + str(data_cam + i),
+                          "--commands_in=L" + obound,
+                          "--data_out=" + str(data_stamped + i),
+                          "--status_out=L" + ibound,
+                          "--format=" + fmt,
+                          "--name=data_hub"+ str(camera_number)]))
 
 
     #     job.append(Popen(["mip_maker",

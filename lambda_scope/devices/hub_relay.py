@@ -168,8 +168,7 @@ class LambdaHub(Hub):
         self._displayer_shutdown()
     #     self._hdf_writer_shutdown()
     #     self._binary_writer_shutdown()
-    #     self._noise_filter_shutdown()
-    #     self._timer_shutdown()
+        self._data_hub_shutdown()
         self._daq_shutdown()
     #     self._camera_shutdown()
     #     # self._valve_shutdown()
@@ -265,34 +264,36 @@ class LambdaHub(Hub):
             name = "displayer{}".format(i)
             self.send("{} shutdown".format(name))
 
+    def _data_hub_set_shape(self, z, y, x):
+        for i in self.cameras:
+            name = "data_hub{}".format(i)
+            self.send("{} set_shape {} {} {}".format(name, z, y, x))
 
+    def _data_hub_set_timer(self, nvolumes, off_time):
+        for i in self.cameras:
+            name = "data_hub{}".format(i)
+            self.send("{} set_timer {} {}".format(name, nvolumes, off_time))
 
-######  These send the commands to the noise_filter device(s).
+    def _data_hub_start(self):
+        for i in self.cameras:
+            name = "data_hub{}".format(i)
+            self.send("{} start".format(name))
 
-    # def _noise_filter_set_stack_size(self, stack_size):
-    #     for i in range(self.ncameras):
-    #         device_name = "noise_filter{}".format(i+self.camera_number)
-    #         self.send("{} set_stack_size {}".format(device_name, stack_size))
+    def _data_hub_stop(self):
+        for i in self.cameras:
+            name = "data_hub{}".format(i)
+            self.send("{} stop".format(name))
 
-    # def _noise_filter_publish_status(self):
-    #     for i in range(self.ncameras):
-    #         device_name = "noise_filter{}".format(i+self.camera_number)
-    #         self.send(device_name + " publish_status")
+    def _data_hub_shutdown(self):
+        for i in self.cameras:
+            name = "data_hub{}".format(i)
+            self.send("{} shutdown".format(name))
 
-    # def _noise_filter_start(self):
-    #     for i in range(self.ncameras):
-    #         device_name = "noise_filter{}".format(i+self.camera_number)
-    #         self.send(device_name + " start")
+    def _data_hub_publish_status(self):
+        for i in self.cameras:
+            name = "data_hub{}".format(i)
+            self.send("{} publish_status".format(name))
 
-    # def _noise_filter_stop(self):
-    #     for i in range(self.ncameras):
-    #         device_name = "noise_filter{}".format(i+self.camera_number)
-    #         self.send(device_name + " stop")
-
-    # def _noise_filter_shutdown(self):
-    #     for i in range(self.ncameras):
-    #         device_name = "noise_filter{}".format(i+self.camera_number)
-    #         self.send(device_name + " shutdown")
 
 ######  These send the commands to the camera(s).
 
@@ -428,20 +429,6 @@ class LambdaHub(Hub):
 
     # def _valve_publish_status(self):
     #     self.send("valve publish_status")
-
-######  These send the commands to the timer.
-
-    # def _timer_start(self):
-    #     self.send("timer start")
-
-    # def _timer_stop(self):
-    #     self.send("timer stop")
-
-    # def _timer_shutdown(self):
-    #     self.send("timer shutdown")
-
-    # def _timer_set_timer(self, on_time, off_time):
-    #     self.send("timer set_timer {} {}".format(on_time, off_time))
 
 
 def main():
