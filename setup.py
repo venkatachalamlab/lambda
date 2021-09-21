@@ -14,8 +14,9 @@ console_scripts = [
     'lambda_server=lambda_scope.zmq.server:main',
     'lambda_subscriber=lambda_scope.zmq.subscriber:main',
     'lambda_logger=lambda_scope.devices.logger:main',
-    'lambda_displayer=lambda_scope.devices.displayer:main',
     'lambda_dragonfly=lambda_scope.devices.dragonfly:main',
+    'lambda_acquisition_board=lambda_scope.devices.acquisition_board:main',
+    'lambda_displayer=lambda_scope.devices.displayer:main',
     'lambda=lambda_scope.system.lambda:main'
 ]
 

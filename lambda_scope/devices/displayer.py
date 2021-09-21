@@ -51,6 +51,7 @@ class Displayer:
         self.mip_image = np.zeros((self.shape[1] + 4 * self.shape[0],
                                    self.shape[2] + 4 * self.shape[0]), self.dtype)
         self.dtype_max = np.iinfo(self.dtype).max
+        self.displayer_shape = self.mip_image.shape
 
         self.name = name
         self.running = True
@@ -72,7 +73,7 @@ class Displayer:
             bound=self.inbound[2])
 
         cv2.namedWindow(self.name, cv2.WINDOW_NORMAL)
-        cv2.resizeWindow(self.name, self.shape[2], self.shape[1])
+        cv2.resizeWindow(self.name, self.displayer_shape[1], self.displayer_shape[0])
 
         self.set_lookup_table(lookup_table[0], lookup_table[1])
 
@@ -95,11 +96,14 @@ class Displayer:
             datatype=self.dtype,
             bound=self.inbound[2])
 
-        cv2.namedWindow(self.name, cv2.WINDOW_NORMAL)
-        cv2.resizeWindow(self.name, self.shape[2], self.shape[1])
-
         self.mip_image = np.zeros((self.shape[1] + 4 * self.shape[0],
                                    self.shape[2] + 4 * self.shape[0]), self.dtype)
+        self.displayer_shape = self.mip_image.shape
+
+        cv2.namedWindow(self.name, cv2.WINDOW_NORMAL)
+        cv2.resizeWindow(self.name, self.displayer_shape[1], self.displayer_shape[0])
+
+
 
     def process(self):
         msg = self.data_subscriber.get_last()

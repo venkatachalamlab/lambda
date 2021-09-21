@@ -64,6 +64,7 @@ class DAQDevice():
                     ul.create_daq_device(self.board_num, device)
                     print("DAQ {}: Initialized.".format(self.serial_num))
                     ul.a_input_mode(self.board_num, AnalogInputMode.SINGLE_ENDED)
+                    return
             print("DAQ {}: Not Found.".format(self.serial_num))
         print("No DAQ Device Found.")
 

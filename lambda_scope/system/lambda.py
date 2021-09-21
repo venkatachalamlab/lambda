@@ -40,14 +40,16 @@ def execute(job, fmt: str, camera: str):
     else:
         cameras = [int(camera)]
 
-    forwarder_in = str(5000)
-    forwarder_out = str(5001)
-    server_port = str(5002)
-    # data_cam = 5003
-    # data_stacker = 5005
-    # data_timer = 5007
-    data_mip = 5009
+    dragonfly_usb_port = "COM9"
+    serial_num_las_daq = "1D3B333"
+    serial_num_cam_daq = "1D17835"
 
+    ibound = str(5000)
+    obound = str(5001)
+    server = str(5002)
+
+    # data_cam = 5003
+    data_stamped = 5005
 
     # (_, _, shape) = array_props_from_string(fmt)
 
@@ -67,50 +69,47 @@ def execute(job, fmt: str, camera: str):
     # serial_number = ["VSC-09002", "VSC-08793"]
 
     job.append(Popen(["lambda_hub",
-                      "--inbound=L"+ forwarder_out,
-                      "--outbound=L" + forwarder_in,
-                      "--server=" + server_port,
-                      "--format=" + fmt,
-                      "--camera=" + camera]))
+                      "--inbound=L"  + obound,
+                      "--outbound=L" + ibound,
+                      "--server=" + server,
+                      "--camera=" + camera,
+                      "--format=" + fmt]))
 
     job.append(Popen(["lambda_client",
-                      "--port=" + server_port]))
+                      "--port=" + server]))
 
     job.append(Popen(["lambda_forwarder",
-                      "--inbound=" + forwarder_in,
-                      "--outbound=" + forwarder_out]))
+                      "--inbound="  + ibound,
+                      "--outbound=" + obound]))
 
     job.append(Popen(["lambda_logger",
-                      "--inbound="+ forwarder_out,
+                      "--inbound="+ obound,
                       "--directory=C:/src/data/data_writer"]))
 
     job.append(Popen(["lambda_dragonfly",
-                      "--inbound=L" + forwarder_out,
-                      "--outbound=L"+ forwarder_in]))
+                      "--inbound=L" + obound,
+                      "--outbound=L"+ ibound,
+                      "--port=" + dragonfly_usb_port]))
+
+    job.append(Popen(["lambda_acquisition_board",
+                      "--commands_in=L" + obound,
+                      "--status_out=L"  + ibound,
+                      "--format=" + fmt,
+                      "--serial_num_daq1=" + serial_num_las_daq,
+                      "--serial_num_daq0=" + serial_num_cam_daq]))
 
     # job.append(Popen(["experiment_runner_v2",
     #                   "--inbound=L" + forwarder_out,
     #                   "--outbound=L"+ forwarder_in,
     #                   "--file_directory=C:/src/venkatachalamlab/software/python/vlab/vlab/devices/microfluidics_devices/"]))
 
-    # job.append(Popen(["DAQ",
-    #                   "--commands_in=L" + forwarder_out,
-    #                   "--status_out=L" + forwarder_in,
-    #                   "--data_in=L" + str(data_stacker),
-    #                   "--format=" + fmt]))
-
-
-
-
-
-
-    for i in cameras:
+    for i, camera_number in enumerate(cameras):
 
         job.append(Popen(["lambda_displayer",
-                          "--inbound=L" + str(data_mip + i - 1),
+                          "--inbound=L" + str(data_stamped + i),
                           "--format=" + fmt,
-                          "--commands=L" + forwarder_out,
-                          "--name=displayer"+ str(i)]))
+                          "--commands=L" + obound,
+                          "--name=displayer"+ str(camera_number)]))
 
 
     #     job.append(Popen(["timer",

@@ -51,9 +51,9 @@ class LambdaHub(Hub):
 
         Hub.__init__(self, inbound, outbound, server, name)
 
-        (self.dtype, _, self.shape) = array_props_from_string(fmt)
-        self.mode_directory = mode_directory
-        self.mode_dict = {}
+        # (self.dtype, _, self.shape) = array_props_from_string(fmt)
+        # self.mode_directory = mode_directory
+        # self.mode_dict = {}
 
         if camera == "*":
             self.cameras = [1, 2]
@@ -149,13 +149,13 @@ class LambdaHub(Hub):
     #     # DAQ should stop after the camera,
     #     self._daq_stop()
 
-    def update_status(self):
-        "Asks devices to publsih their status."
+    # def update_status(self):
+        # "Asks devices to publsih their status."
 
     #     self._noise_filter_publish_status()
     #     self._hdf_writer_publish_status()
     #     self._binary_writer_publish_status()
-        self._dragonfly_publish_status()
+        # self._dragonfly_publish_status()
     #     self._daq_publish_status()
     #     self._camera_publish_status()
     #     self._runner_publish_status()
@@ -164,34 +164,22 @@ class LambdaHub(Hub):
     def shutdown(self):
         """Send shutdown command to all devices."""
 
-        self._displayer_shutdown()
         self._dragonfly_shutdown()
+        self._displayer_shutdown()
     #     self._hdf_writer_shutdown()
     #     self._binary_writer_shutdown()
-    #     self._mip_maker_shutdown()
     #     self._noise_filter_shutdown()
     #     self._timer_shutdown()
-    #     self._daq_shutdown()
+        self._daq_shutdown()
     #     self._camera_shutdown()
     #     # self._valve_shutdown()
     #     self._runner_shutdown()
         time.sleep(5)
+        self._logger_shutdown()
         self.running = False
 
-    def _displayer_set_lookup_table(self, lut_low, lut_high):
-        for i in self.cameras:
-            name = "displayer{}".format(i)
-            self.send("{} set_lookup_table {} {}".format(name, lut_low, lut_high))
-
-    def _displayer_set_shape(self, z, y, x):
-        for i in self.cameras:
-            name = "displayer{}".format(i)
-            self.send("{} set_shape {} {} {}".format(name, z, y, x))
-
-    def _displayer_shutdown(self):
-        for i in self.cameras:
-            name = "displayer{}".format(i)
-            self.send("{} shutdown".format(name))
+    def _logger_shutdown(self):
+        self.send("logger shutdown")
 
     def _dragonfly_shutdown(self):
         self.send("dragonfly shutdown")
@@ -222,6 +210,62 @@ class LambdaHub(Hub):
 
     def _dragonfly_set_standby(self, mode):
         self.send("dragonfly set_standby {}".format(mode))
+
+    def _daq_set_exposure_time(self, exposure_time):
+        self.send("daq set_exposure_time {}".format(exposure_time))
+
+    def _daq_set_stack_size(self, stack_size):
+        self.send("daq set_stack_size {}".format(stack_size))
+
+    def _daq_set_las_continuous(self, las_continuous):
+        self.send("daq set_las_continuous {}".format(las_continuous))
+
+    def _daq_set_voltage_step(self, voltage_step):
+        self.send("daq set_voltage_step {}".format(voltage_step))
+
+    def _daq_set_laser(self, idx, power, position):
+        self.send("daq set_laser {} {} {}".format(idx, power, position))
+
+    def _daq_stop(self):
+        self.send("daq stop")
+
+    def _daq_set_green_laser(self, power_percentage):
+        self.send("daq set_green_laser {}".format(power_percentage))
+
+    def _daq_set_green_led(self, led_status):
+        self.send("daq set_green_led {}".format(led_status))
+
+    def _daq_laser_stop(self):
+        self.send("daq laser_stop")
+
+    def _daq_single_laser(self, laser_index, power_percentage):
+        self.send("daq single_laser {} {}".format(laser_index, power_percentage))
+
+    def _daq_start(self):
+        self.send("daq start")
+
+    def _daq_shutdown(self):
+        self.send("daq shutdown")
+
+    def _daq_publish_status(self):
+        self.send("daq publish_status")
+
+    def _displayer_set_lookup_table(self, lut_low, lut_high):
+        for i in self.cameras:
+            name = "displayer{}".format(i)
+            self.send("{} set_lookup_table {} {}".format(name, lut_low, lut_high))
+
+    def _displayer_set_shape(self, z, y, x):
+        for i in self.cameras:
+            name = "displayer{}".format(i)
+            self.send("{} set_shape {} {} {}".format(name, z, y, x))
+
+    def _displayer_shutdown(self):
+        for i in self.cameras:
+            name = "displayer{}".format(i)
+            self.send("{} shutdown".format(name))
+
+
 
 ######  These send the commands to the noise_filter device(s).
 
@@ -283,46 +327,6 @@ class LambdaHub(Hub):
     #         self.send(device_name + " shutdown")
 
 
-######  These send the commands to the DAQ.
-
-    # def _daq_set_rate(self, rate):
-    #     self.send("DAQ set_rate {}".format(rate))
-
-    # def _daq_set_led(self, percentage):
-    #     self.send("DAQ set_led {}".format(percentage))
-
-    # def _daq_set_stack_size(self, stack_size):
-    #     self.send("DAQ set_stack_size {}".format(stack_size))
-
-    # def _daq_set_las_continuous(self, las_continuous):
-    #     self.send("DAQ set_las_continuous {}".format(las_continuous))
-
-    # def _daq_set_voltage_step(self, voltage_step):
-    #     self.send("DAQ set_voltage_step {}".format(voltage_step))
-
-    # def _daq_set_laser(self, idx, power, position):
-    #     self.send("DAQ set_laser {} {} {}".format(idx, power, position))
-
-    # def _daq_stop(self):
-    #     self.send("DAQ stop")
-
-    # def _daq_stop_green(self):
-    #     self.send("DAQ green_laser_stop")
-
-    # def _daq_laser_stop(self):
-    #     self.send("DAQ laser_stop")
-
-    # def _daq_single_laser(self, laser_index, laser_power_percentage):
-    #     self.send("DAQ single_laser {} {}".format(laser_index, laser_power_percentage))
-
-    # def _daq_start(self):
-    #     self.send("DAQ start")
-
-    # def _daq_shutdown(self):
-    #     self.send("DAQ shutdown")
-
-    # def _daq_publish_status(self):
-    #     self.send("DAQ publish_status")
 
 ###### These send the commands to the led_controller
 
@@ -401,25 +405,6 @@ class LambdaHub(Hub):
 
     # def _laser_publish_status(self):
     #     self.send("laser publish_status")
-
-######  These send the commands to the mip_maker.
-
-    # def _mip_maker_start(self):
-    #     self.send("mip_maker start")
-
-    # def _mip_maker_stop(self):
-    #     self.send("mip_maker stop")
-
-    # def _mip_maker_shutdown(self):
-    #     self.send("mip_maker shutdown")
-
-    # def _mip_maker_set_stack_size(self, stack_size):
-    #     self.send("mip_maker set_stack_size {}".format(stack_size))
-
-    # def _mip_maker_publish_status(self):
-    #     self.send("mip_maker publish_status")
-
-######  These send the commands to the dragonfly_device.
 
 
 
