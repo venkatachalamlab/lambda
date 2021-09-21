@@ -166,8 +166,7 @@ class LambdaHub(Hub):
 
         self._dragonfly_shutdown()
         self._displayer_shutdown()
-    #     self._hdf_writer_shutdown()
-    #     self._binary_writer_shutdown()
+        self._writer_shutdown()
         self._data_hub_shutdown()
         self._daq_shutdown()
     #     self._camera_shutdown()
@@ -294,6 +293,36 @@ class LambdaHub(Hub):
             name = "data_hub{}".format(i)
             self.send("{} publish_status".format(name))
 
+    def _writer_set_saving_mode(self, saving_mode):
+        for i in self.cameras:
+            name = "writer{}".format(i)
+            self.send("{} set_saving_mode {}".format(name, saving_mode))
+
+    def _writer_set_shape(self, z, y, x):
+        for i in self.cameras:
+            name = "writer{}".format(i)
+            self.send("{} set_shape {} {} {}".format(name, z, y, x))
+
+    def _writer_start(self):
+        for i in self.cameras:
+            name = "writer{}".format(i)
+            self.send("{} start".format(name))
+
+    def _writer_stop(self):
+        for i in self.cameras:
+            name = "writer{}".format(i)
+            self.send("{} stop".format(name))
+
+    def _writer_shutdown(self):
+        for i in self.cameras:
+            name = "writer{}".format(i)
+            self.send("{} shutdown".format(name))
+
+    def _writer_publish_status(self):
+        for i in self.cameras:
+            name = "writer{}".format(i)
+            self.send("{} publish_status".format(name))
+
 
 ######  These send the commands to the camera(s).
 
@@ -345,10 +374,7 @@ class LambdaHub(Hub):
 
 ######  These send the commands to the hdf_writer(s).
 
-    # def _hdf_writer_set_writer_mode(self, writer_mode):
-    #     for i in range(self.ncameras):
-    #         device_name = "hdf_writer{}".format(i+self.camera_number)
-    #         self.send("{} update_mode {}".format(device_name, writer_mode))
+
 
     # def _hdf_writer_set_stack_size(self, stack_size):
     #     for i in range(self.ncameras):

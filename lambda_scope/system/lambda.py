@@ -43,6 +43,7 @@ def execute(job, fmt: str, camera: str):
     dragonfly_usb_port = "COM9"
     serial_num_las_daq = "1D3B333"
     serial_num_cam_daq = "1D17835"
+    data_directory = "C:/src/data/data_writer"
 
     ibound = str(5000)
     obound = str(5001)
@@ -119,32 +120,14 @@ def execute(job, fmt: str, camera: str):
                           "--format=" + fmt,
                           "--name=data_hub"+ str(camera_number)]))
 
-
-    #     job.append(Popen(["mip_maker",
-    #                       "--data_in=L" + str(data_stacker + index-1),
-    #                       "--commands=L" + forwarder_out,
-    #                       "--data_out=" + str(data_mip + index-1),
-    #                       "--status_out=L" + forwarder_in,
-    #                       "--z_scale=" + z_scale,
-    #                       "--format=" + fmt]))
-
-
-    #     job.append(Popen(["hdf_writer",
-    #                       "--data_in=localhost:" + str(data_timer + index-1),
-    #                       "--commands_in=localhost:" + forwarder_out,
-    #                       "--status_out=localhost:" + forwarder_in,
-    #                       "--format=" + fmt,
-    #                       "--directory=C:/src/data/data_writer",
-    #                       "--video_name=camera" + str(index),
-    #                       "--name=hdf_writer"+ str(index)]))
-
-        # job.append(Popen(["binary_writer",
-        #                   "--data_in=localhost:" + str(data_timer + index-1),
-        #                   "--commands_in=localhost:" + forwarder_out,
-        #                   "--format=" + fmt,
-        #                   "--directory=C:/src/data/data_writer",
-        #                   "--video_name=camera" + str(index),
-        #                   "--name=binary_writer"+ str(index)]))
+        job.append(Popen(["lambda_writer",
+                          "--data_in=L" + str(data_stamped + i),
+                          "--commands_in=L" + obound,
+                          "--status_out=L" + ibound,
+                          "--format=" + fmt,
+                          "--directory="+ data_directory,
+                          "--video_name=camera" + str(camera_number),
+                          "--name=writer"+ str(camera_number)]))
 
 
     # if int(camera_number) in (1, 2):
