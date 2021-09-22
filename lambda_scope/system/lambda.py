@@ -52,7 +52,9 @@ def execute(job, fmt: str, camera: str):
     data_cam = 5003
     data_stamped = 5005
 
-    # (_, _, shape) = array_props_from_string(fmt)
+    (_, _, shape) = array_props_from_string(fmt)
+
+    camera_name = "AndorZylaCamera_4"
 
     # if shape[1:] == (512, 512):
     #     camera = "AndorZylaCamera_512_512_4"
@@ -67,7 +69,7 @@ def execute(job, fmt: str, camera: str):
     # elif shape[1:] == (2048, 2048):
     #     camera = "AndorZylaCamera_2048_2048_1"
 
-    # serial_number = ["VSC-09002", "VSC-08793"]
+    serial_number = ["VSC-09002", "VSC-08793"]
 
     job.append(Popen(["lambda_hub",
                       "--inbound=L"  + obound,
@@ -128,6 +130,19 @@ def execute(job, fmt: str, camera: str):
                           "--directory="+ data_directory,
                           "--video_name=camera" + str(camera_number),
                           "--name=writer"+ str(camera_number)]))
+
+        if i == 1:
+            time.sleep(15)
+
+        job.append(Popen([camera_name,
+                          "--data=*:" + str(data_cam + i),
+                          "--serial_number=" + serial_number[int(camera_number)-1],
+                          "--trigger_mode=2",
+                          "--stack_size=" + str(shape[0]),
+                          "--y_shape=" + str(shape[1]),
+                          "--x_shape=" + str(shape[2]),
+                          "--name=ZylaCamera"+str(camera_number)]))
+
 
 
     # if int(camera_number) in (1, 2):

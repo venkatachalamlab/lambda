@@ -169,7 +169,7 @@ class LambdaHub(Hub):
         self._writer_shutdown()
         self._data_hub_shutdown()
         self._daq_shutdown()
-    #     self._camera_shutdown()
+        self._camera_shutdown()
     #     # self._valve_shutdown()
     #     self._runner_shutdown()
         time.sleep(5)
@@ -323,38 +323,40 @@ class LambdaHub(Hub):
             name = "writer{}".format(i)
             self.send("{} publish_status".format(name))
 
+    def _camera_set_stack_size(self, stack_size):
+        for i in self.cameras:
+            name = "ZylaCamera{}".format(i)
+            self.send("{} set_stack_size {}".format(name, stack_size))
 
-######  These send the commands to the camera(s).
+    def _camera_set_shape(self, z, y, x):
+        for i in self.cameras:
+            name = "ZylaCamera{}".format(i)
+            self.send("{} set_shape {} {} {}".format(name, z, y, x))
 
-    # def _camera_set_stack_size(self, stack_size):
-    #     for i in range(self.ncameras):
-    #         device_name = "ZylaCamera{}".format(i+self.camera_number)
-    #         self.send("{} set_stack_size {}".format(device_name, stack_size))
+    def _camera_set_trigger_mode(self, trigger_mode):
+        for i in self.cameras:
+            name = "ZylaCamera{}".format(i)
+            self.send("{} set_trigger_mode {}".format(name, trigger_mode))
 
-    # def _camera_set_trigger_mode(self, trigger_mode):
-    #     for i in range(self.ncameras):
-    #         device_name = "ZylaCamera{}".format(i+self.camera_number)
-    #         self.send("{} set_trigger_mode {}".format(device_name, trigger_mode))
+    def _camera_publish_status(self):
+        for i in self.cameras:
+            name = "ZylaCamera{}".format(i)
+            self.send(name + " publish_status")
 
-    # def _camera_publish_status(self):
-    #     for i in range(self.ncameras):
-    #         device_name = "ZylaCamera{}".format(i+self.camera_number)
-    #         self.send(device_name + " publish_status")
+    def _camera_start(self):
+        for i in self.cameras:
+            name = "ZylaCamera{}".format(i)
+            self.send(name + " start")
 
-    # def _camera_start(self):
-    #     for i in range(self.ncameras):
-    #         device_name = "ZylaCamera{}".format(i+self.camera_number)
-    #         self.send(device_name + " start")
+    def _camera_stop(self):
+        for i in self.cameras:
+            name = "ZylaCamera{}".format(i)
+            self.send(name + " stop")
 
-    # def _camera_stop(self):
-    #     for i in range(self.ncameras):
-    #         device_name = "ZylaCamera{}".format(i+self.camera_number)
-    #         self.send(device_name + " stop")
-
-    # def _camera_shutdown(self):
-    #     for i in range(self.ncameras):
-    #         device_name = "ZylaCamera{}".format(i+self.camera_number)
-    #         self.send(device_name + " shutdown")
+    def _camera_shutdown(self):
+        for i in self.cameras:
+            name = "ZylaCamera{}".format(i)
+            self.send(name + " shutdown")
 
 
 
@@ -371,35 +373,6 @@ class LambdaHub(Hub):
 
     # def _led_shutdown(self):
     #     self.send("led shutdown")
-
-######  These send the commands to the hdf_writer(s).
-
-
-
-    # def _hdf_writer_set_stack_size(self, stack_size):
-    #     for i in range(self.ncameras):
-    #         device_name = "hdf_writer{}".format(i+self.camera_number)
-    #         self.send("{} update_shape {}".format(device_name, stack_size))
-
-    # def _hdf_writer_publish_status(self):
-    #     for i in range(self.ncameras):
-    #         device_name = "hdf_writer{}".format(i+self.camera_number)
-    #         self.send(device_name + " publish_status")
-
-    # def _hdf_writer_start(self):
-    #     for i in range(self.ncameras):
-    #         device_name = "hdf_writer{}".format(i+self.camera_number)
-    #         self.send(device_name + " start")
-
-    # def _hdf_writer_stop(self):
-    #     for i in range(self.ncameras):
-    #         device_name = "hdf_writer{}".format(i+self.camera_number)
-    #         self.send(device_name + " stop")
-
-    # def _hdf_writer_shutdown(self):
-    #     for i in range(self.ncameras):
-    #         device_name = "hdf_writer{}".format(i+self.camera_number)
-    #         self.send(device_name + " shutdown")
 
 
 ######  These send the commands to the runner.
