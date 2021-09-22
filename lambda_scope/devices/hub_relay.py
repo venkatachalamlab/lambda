@@ -25,9 +25,10 @@ Options:
                                         [default: C:/src/venkatachalamlab/software/python/vlab/vlab/devices/lambda_devices/]
 """
 
-from typing import Tuple
+import os
 import json
 import time
+from typing import Tuple
 
 from docopt import docopt
 
@@ -51,9 +52,9 @@ class LambdaHub(Hub):
 
         Hub.__init__(self, inbound, outbound, server, name)
 
-        # (self.dtype, _, self.shape) = array_props_from_string(fmt)
-        # self.mode_directory = mode_directory
-        # self.mode_dict = {}
+        (self.dtype, _, self.shape) = array_props_from_string(fmt)
+        self.mode_directory = mode_directory
+        self.mode_dict = {}
 
         if camera == "*":
             self.cameras = [1, 2]
@@ -61,52 +62,42 @@ class LambdaHub(Hub):
             self.cameras = [int(camera)]
 
 
-    # def set_mode(self, mode):
-    #     """Reads the parameters from a json file and calls the methods to set them."""
-    #     mode_file = self.mode_directory + "modes.json"
-    #     with open(mode_file, 'r') as f:
-    #         modes_dict = json.load(f)
-    #         self.mode_dict = modes_dict[mode]
+    def set_mode(self, mode):
+        mode_file = os.path.join(self.mode_directory , "modes.json")
+        with open(mode_file, 'r') as f:
+            modes_dict = json.load(f)
+            self.mode_dict = modes_dict[mode]
 
-    #     self.stop()
-    #     for i in range(4):
-    #         self._laser_set_nd_filters(i + 1, self.mode_dict["nd_filters"][i])
-    #         for j in range(4):
-    #             self._daq_set_laser(i, self.mode_dict["laser_power"][i][j], j)
-    #     self._daq_set_las_continuous(self.mode_dict["laser_output_continuous"])
-    #     self._hdf_writer_set_writer_mode(self.mode_dict["writer_mode"])
-    #     self._binary_writer_set_writer_mode(self.mode_dict["writer_mode"])
-    #     self._camera_set_trigger_mode(self.mode_dict["camera_trigger_mode"])
-    #     self._dragonfly_set_imaging_mode(self.mode_dict["dragonfly_imaging_mode"])
-    #     self._camera_set_stack_size(self.mode_dict["stack_size"])
-    #     self._noise_filter_set_stack_size(self.mode_dict["stack_size"])
-    #     self._hdf_writer_set_stack_size(self.mode_dict["stack_size"])
-    #     self._binary_writer_set_stack_size(self.mode_dict["stack_size"])
-    #     self._daq_set_stack_size(self.mode_dict["stack_size"])
-    #     self._mip_maker_set_stack_size(self.mode_dict["stack_size"])
-    #     self._image_displayer_set_format(self.z_scale*self.mode_dict["stack_size"]+self.shape[1],
-    #                                      self.z_scale*self.mode_dict["stack_size"]+self.shape[2])
-    #     self._daq_set_voltage_step(self.mode_dict["voltage_step"])
-    #     self._daq_set_rate(self.mode_dict["rate"])
-    #     self._dragonfly_set_filter(1, self.mode_dict["filter1"])
-    #     self._dragonfly_set_filter(2, self.mode_dict["filter2"])
-    #     self._timer_set_timer(self.mode_dict["timer_on"], self.mode_dict["timer_off"])
-    #     self._dragonfly_set_fieldstop(self.mode_dict["dragonfly_fieldstop"])
+        self.stop()
+        for i in range(4):
+            for j in range(4):
+                self._daq_set_laser(i, self.mode_dict["laser_power"][i][j], j)
+        self._daq_set_las_continuous(self.mode_dict["laser_output_continuous"])
+        self._writer_set_saving_mode(self.mode_dict["saving_mode"])
+        self._camera_set_trigger_mode(self.mode_dict["camera_trigger_mode"])
+        self._dragonfly_set_imaging_mode(self.mode_dict["dragonfly_imaging_mode"])
+        self.shape = self.mode_dict["shape"]
+        self._camera_set_shape(*self.shape)
+        self._writer_set_shape(*self.shape)
+        self._data_hub_set_shape(*self.shape)
+        self._displayer_set_shape(*self.shape)
+        self._daq_set_stack_size(self.shape[0])
+        self._daq_set_voltage_step(self.mode_dict["voltage_step"])
+        self._daq_set_exposure_time(self.mode_dict["exposure_time"])
+        self._dragonfly_set_filter(1, self.mode_dict["filter1"])
+        self._dragonfly_set_filter(2, self.mode_dict["filter2"])
+        self._data_hub_set_timer(self.mode_dict["total_volumes"], self.mode_dict["rest_time"])
 
-    #     print("mode "+ str(mode) + " is set.")
+        print("mode "+ str(mode) + " is set.")
 
 
-    # def start(self):
-    #     """It publishes the stop command to each device."""
-    #     self._camera_start()
-    #     self._hdf_writer_start()
-    #     self._binary_writer_start()
-    #     self._mip_maker_start()
-    #     self._noise_filter_start()
-    #     self._timer_start()
+    def start(self):
+        self._camera_start()
+        self._writer_start()
+        self._data_hub_start()
     #     #important
-    #     time.sleep(2)
-    #     self._daq_start()
+        time.sleep(2)
+        self._daq_start()
 
     # def start_runner(self, mode):
     #     """Starts the runner."""
@@ -131,39 +122,27 @@ class LambdaHub(Hub):
     #     self.run_mf_exp("npa", "np_mf")
 
 
-    # def stop(self):
-    #     """It publishes the stop command to each device."""
-
-    #     self._camera_stop()
+    def stop(self):
+        self._camera_stop()
     #     # self._runner_stop()
-
     #     # this delay provides all of other devices with enough time
     #     # to process any images that are already publishsed by the camera
-    #     time.sleep(2)
-    #     self._timer_stop()
-    #     self._noise_filter_stop()
-    #     self._hdf_writer_stop()
-    #     self._binary_writer_stop()
-    #     self._mip_maker_stop()
-
+        time.sleep(2)
+        self._data_hub_stop()
+        self._writer_stop()
     #     # DAQ should stop after the camera,
-    #     self._daq_stop()
+        self._daq_stop()
 
-    # def update_status(self):
-        # "Asks devices to publsih their status."
-
-    #     self._noise_filter_publish_status()
-    #     self._hdf_writer_publish_status()
-    #     self._binary_writer_publish_status()
-        # self._dragonfly_publish_status()
-    #     self._daq_publish_status()
-    #     self._camera_publish_status()
+    def update_status(self):
+        self._data_hub_publish_status()
+        self._writer_publish_status()
+        self._dragonfly_publish_status()
+        self._daq_publish_status()
+        self._camera_publish_status()
     #     self._runner_publish_status()
     #     self._valve_publish_status()
 
     def shutdown(self):
-        """Send shutdown command to all devices."""
-
         self._dragonfly_shutdown()
         self._displayer_shutdown()
         self._writer_shutdown()
@@ -216,7 +195,7 @@ class LambdaHub(Hub):
         self.send("daq set_stack_size {}".format(stack_size))
 
     def _daq_set_las_continuous(self, las_continuous):
-        self.send("daq set_las_continuous {}".format(las_continuous))
+        self.send("daq set_laser_continuous {}".format(las_continuous))
 
     def _daq_set_voltage_step(self, voltage_step):
         self.send("daq set_voltage_step {}".format(voltage_step))
@@ -357,22 +336,6 @@ class LambdaHub(Hub):
         for i in self.cameras:
             name = "ZylaCamera{}".format(i)
             self.send(name + " shutdown")
-
-
-
-###### These send the commands to the led_controller
-
-    # def set_optogenetics_params(self, n_pulse, t_on, t_off):
-    #     self.send("led set_params {} {} {}".format(n_pulse, t_on, t_off))
-
-    # def start_optogenetics(self):
-    #     self.send("led start_experiment")
-
-    # def stop_optogenetics(self):
-    #     self.send("led stop_experiment")
-
-    # def _led_shutdown(self):
-    #     self.send("led shutdown")
 
 
 ######  These send the commands to the runner.

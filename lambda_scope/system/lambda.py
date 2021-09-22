@@ -44,6 +44,8 @@ def execute(job, fmt: str, camera: str):
     serial_num_las_daq = "1D3B333"
     serial_num_cam_daq = "1D17835"
     data_directory = "C:/src/data/data_writer"
+    logger_directory = "C:/src/data/data_writer"
+    mode_directory = "C:/src/lambda/lambda_scope/mode/"
 
     ibound = str(5000)
     obound = str(5001)
@@ -54,49 +56,35 @@ def execute(job, fmt: str, camera: str):
 
     (_, _, shape) = array_props_from_string(fmt)
 
-    camera_name = "AndorZylaCamera_4"
-
-    # if shape[1:] == (512, 512):
-    #     camera = "AndorZylaCamera_512_512_4"
-    # elif shape[1:] == (256, 512):
-    #     camera = "AndorZylaCamera_256_512_4"
-    # elif shape[1:] == (512, 1024):
-    #     camera = "AndorZylaCamera_512_1024_2"
-    # elif shape[1:] == (1024, 1024):
-    #     camera = "AndorZylaCamera_1024_1024_2"
-    # elif shape[1:] == (1024, 2048):
-    #     camera = "AndorZylaCamera_1024_2048_1"
-    # elif shape[1:] == (2048, 2048):
-    #     camera = "AndorZylaCamera_2048_2048_1"
-
     serial_number = ["VSC-09002", "VSC-08793"]
 
     job.append(Popen(["lambda_hub",
-                      "--inbound=L"  + obound,
+                      "--inbound=L" + obound,
                       "--outbound=L" + ibound,
                       "--server=" + server,
                       "--camera=" + camera,
-                      "--format=" + fmt]))
+                      "--format=" + fmt,
+                      "--mode_directory=" + mode_directory]))
 
     job.append(Popen(["lambda_client",
                       "--port=" + server]))
 
     job.append(Popen(["lambda_forwarder",
-                      "--inbound="  + ibound,
+                      "--inbound=" + ibound,
                       "--outbound=" + obound]))
 
     job.append(Popen(["lambda_logger",
-                      "--inbound="+ obound,
-                      "--directory=C:/src/data/data_writer"]))
+                      "--inbound=" + obound,
+                      "--directory=" + logger_directory]))
 
     job.append(Popen(["lambda_dragonfly",
                       "--inbound=L" + obound,
-                      "--outbound=L"+ ibound,
+                      "--outbound=L" + ibound,
                       "--port=" + dragonfly_usb_port]))
 
     job.append(Popen(["lambda_acquisition_board",
                       "--commands_in=L" + obound,
-                      "--status_out=L"  + ibound,
+                      "--status_out=L" + ibound,
                       "--format=" + fmt,
                       "--serial_num_daq1=" + serial_num_las_daq,
                       "--serial_num_daq0=" + serial_num_cam_daq]))
@@ -134,7 +122,7 @@ def execute(job, fmt: str, camera: str):
         if i == 1:
             time.sleep(15)
 
-        job.append(Popen([camera_name,
+        job.append(Popen(["AndorZylaCamera",
                           "--data=*:" + str(data_cam + i),
                           "--serial_number=" + serial_number[int(camera_number)-1],
                           "--trigger_mode=2",
@@ -142,33 +130,6 @@ def execute(job, fmt: str, camera: str):
                           "--y_shape=" + str(shape[1]),
                           "--x_shape=" + str(shape[2]),
                           "--name=ZylaCamera"+str(camera_number)]))
-
-
-
-    # if int(camera_number) in (1, 2):
-    #     job.append(Popen([camera,
-    #                       "--data=*:" + str(data_cam + int(camera_number) -1),
-    #                       "--serial_number=" + serial_number[int(camera_number)-1],
-    #                       "--trigger_mode=2",
-    #                       "--stack_size=" + str(shape[0]),
-    #                       "--name=ZylaCamera"+str(camera_number)]))
-
-    # elif int(camera_number) == 3:
-    #     job.append(Popen([camera,
-    #                       "--data=*:" + str(data_cam),
-    #                       "--serial_number=" + serial_number[0],
-    #                       "--trigger_mode=2",
-    #                       "--stack_size=" + str(shape[0]),
-    #                       "--name=ZylaCamera1"]))
-
-    #     time.sleep(20)
-    #     job.append(Popen([camera,
-    #                       "--data=*:" + str(data_cam + 1),
-    #                       "--serial_number=" + serial_number[1],
-    #                       "--trigger_mode=2",
-    #                       "--stack_size=" + str(shape[0]),
-    #                       "--name=ZylaCamera2"]))
-
 
 def run(fmt: str, camera: str):
     """Run all system devices."""

@@ -1,0 +1,30 @@
+{
+    "widefield": {
+        "saving_mode": 0,
+        "camera_trigger_mode": 1,
+        "dragonfly_imaging_mode": 1,
+        "shape": [1, 512, 512],
+        "voltage_step": 0.1,
+        "exposure_time": 20,
+        "laser_power": [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0 , 0], [0, 0, 0, 0]],
+        "laser_output_continuous": 0,
+        "filter1": 4,
+        "filter2": 4,
+        "total_volumes": 1,
+        "rest_time": 0
+    },
+    "confocal": {
+        "saving_mode": 0,
+        "camera_trigger_mode": 2,
+        "dragonfly_imaging_mode": 2,
+        "shape": [20, 512, 512],
+        "voltage_step": 0.15,
+        "exposure_time": 10,
+        "laser_power": [[0, 0, 0, 0], [10, 10, 10, 10], [5, 5, 5, 5], [0, 0, 0, 0]],
+        "laser_output_continuous": 0,
+        "filter1": 1,
+        "filter2": 1,
+        "total_volumes": 1,
+        "rest_time": 0
+    }
+}

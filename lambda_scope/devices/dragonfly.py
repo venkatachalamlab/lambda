@@ -125,6 +125,7 @@ class DragonflyDevice():
         self._execute("set_emission_dichroic", emission=3)
 
         self._execute("set_disk_dichroic", dichroic=1)
+        self._execute("set_fieldstop", fieldstop_mode=2)
 
         self.publish_status()
         print("Dragonfly: Initialized")

@@ -38,11 +38,10 @@
 #include "Zyla.h"
 
 
-std::string update_status(std::string name, int stack_size, bool running, bool device_status)
+std::string update_status(std::string name, int stack_size, int height, int width, bool running, bool device_status)
 {
     std::ostringstream s;
-    s << "{\"" << name << "\": {\"stack_size\": "
-        << stack_size << ", \"running_status\": " << running << ", \"device_status\": " << device_status << "}}";
+    s << "{\"" << name << "\": {\"z\": " << stack_size << ", \"y\": " << height << ", \"x\": " << width << ", \"running_status\": " << running << ", \"device_status\": " << device_status << "}}";
 
     return s.str();
 }
@@ -146,11 +145,12 @@ int main(int argc, char *argv[])
     if (trigger_mode == 1)
         stack_size = 1;
     camera.prepare();
+	std::cout << "Camera: Initialized." << std::endl;
 
     bool camera_running = false;
     bool app_running = true;
 
-    std::string status = update_status(device_name, stack_size, camera_running, app_running);
+    std::string status = update_status(device_name, stack_size, camera.get_AOI_height(), camera.get_AOI_width(), camera_running, app_running);
     
 
     while (app_running) {
@@ -174,23 +174,10 @@ int main(int argc, char *argv[])
                 {
                     stack_size = 1;
                 }
-                status = update_status(device_name, stack_size, camera_running, app_running);
+                status = update_status(device_name, stack_size, camera.get_AOI_height(), camera.get_AOI_width(), camera_running, app_running);
                 s_send(updates, "hub " + status);
                 s_send(updates, "logger " + status);
             }
-            else if (cmd.substr(0, 14).compare("set_stack_size") == 0)
-            {
-                stack_size = std::stoi(cmd.substr(15));
-
-                if (trigger_mode == 1)
-                {
-                    stack_size = 1;
-                }
-                status = update_status(device_name, stack_size, camera_running, app_running);
-                s_send(updates, "hub " + status);
-                s_send(updates, "logger " + status);
-            }
-			// start new
 			else if (cmd.substr(0, 9).compare("set_shape") == 0)
 			{
 				std::string params = cmd.substr(10);
@@ -217,18 +204,17 @@ int main(int argc, char *argv[])
 
 				camera.prepare();
 
-				status = update_status(device_name, stack_size, camera_running, app_running);
+				status = update_status(device_name, stack_size, camera.get_AOI_height(), camera.get_AOI_width(), camera_running, app_running);
 				s_send(updates, "hub " + status);
 				s_send(updates, "logger " + status);
 			}
-			// end new
             else if (cmd.compare("start") == 0)
             {
                 if(!camera_running)
                 {
 					camera.start_continuous();
                     camera_running = camera.get_camera_acquiring();
-                    status = update_status(device_name, stack_size, camera_running, app_running);
+                    status = update_status(device_name, stack_size, camera.get_AOI_height(), camera.get_AOI_width(), camera_running, app_running);
                     s_send(updates, "hub " + status);
                     s_send(updates, "logger " + status);
                 }
@@ -239,14 +225,14 @@ int main(int argc, char *argv[])
                 {
 					camera.pause_continuous();
                     camera_running = camera.get_camera_acquiring();
-                    status = update_status(device_name, stack_size, camera_running, app_running);
+                    status = update_status(device_name, stack_size, camera.get_AOI_height(), camera.get_AOI_width(), camera_running, app_running);
                     s_send(updates, "hub " + status);
                     s_send(updates, "logger " + status);
                 }
             }
             else if (cmd.compare("publish_status") == 0 )
             {
-                status = update_status(device_name, stack_size, camera_running, app_running);
+                status = update_status(device_name, stack_size, camera.get_AOI_height(), camera.get_AOI_width(), camera_running, app_running);
                 s_send(updates, "hub " + status);
                 s_send(updates, "logger " + status);
             }
@@ -255,7 +241,7 @@ int main(int argc, char *argv[])
                 camera.finish_continuous();
                 camera_running = camera.get_camera_acquiring();
                 app_running = false;
-                status = update_status(device_name, stack_size, camera_running, app_running);
+                status = update_status(device_name, stack_size, camera.get_AOI_height(), camera.get_AOI_width(), camera_running, app_running);
                 s_send(updates, "hub " + status);
                 s_send(updates, "logger " + status);
             }

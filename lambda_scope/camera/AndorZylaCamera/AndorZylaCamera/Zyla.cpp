@@ -303,7 +303,6 @@ void Zyla::prepare()
     Width = get_AOI_width();
     Stride = get_AOI_stride();
     image_size = Height * Width * 2;
-    std::cout << "Camera: Initialized." << std::endl;
 }
 
 void Zyla::set_trigger_mode(int trigger_mode)
