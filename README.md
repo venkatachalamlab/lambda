@@ -8,3 +8,4 @@
 ## Customized Software
 
 ![lambda_software](https://user-images.githubusercontent.com/31863323/134268000-abec52b8-55ba-4b6d-9823-57f717599996.png)
+[update diagram](https://drive.google.com/file/d/1p9IKQEOXa4xgkiXP0otaJxKXWX_EqZna/view?usp=sharing)
