@@ -14,12 +14,12 @@
         "rest_time": 0
     },
     "confocal": {
-        "saving_mode": 0,
+        "saving_mode": 1,
         "camera_trigger_mode": 2,
         "dragonfly_imaging_mode": 2,
-        "shape": [20, 512, 512],
+        "shape": [20, 256, 512],
         "voltage_step": 0.15,
-        "exposure_time": 10,
+        "exposure_time": 5,
         "laser_power": [[0, 0, 0, 0], [10, 10, 10, 10], [5, 5, 5, 5], [0, 0, 0, 0]],
         "laser_output_continuous": 0,
         "filter1": 1,
