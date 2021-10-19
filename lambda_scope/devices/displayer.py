@@ -21,7 +21,7 @@ Options:
     --name=STRING                   Name of image window.
                                         [default: displayer]
     --lookup_table=213_2004         Lookup table.
-                                        [default: 0_255]
+                                        [default: 0_4095]
 """
 
 from typing import Optional, Tuple
@@ -58,6 +58,8 @@ class Displayer:
         self.inbound = inbound
         self.lookup_table = lookup_table
 
+        self.poller = zmq.Poller()
+
         self.command_subscriber = ObjectSubscriber(
             obj=self,
             name=name,
@@ -72,19 +74,20 @@ class Displayer:
             datatype=self.dtype,
             bound=self.inbound[2])
 
+        self.poller.register(self.command_subscriber.socket, zmq.POLLIN)
+        self.poller.register(self.data_subscriber.socket, zmq.POLLIN)
+
         cv2.namedWindow(self.name, cv2.WINDOW_NORMAL)
         cv2.resizeWindow(self.name, self.displayer_shape[1], self.displayer_shape[0])
 
         self.set_lookup_table(lookup_table[0], lookup_table[1])
 
     def set_lookup_table(self, lut_low, lut_high):
-        if lut_high > self.dtype_max:
-            self.lookup_table = (0, self.dtype_max)
-        else:
-            self.lookup_table = (lut_low, lut_high)
-        self.scale = int(np.floor(self.dtype_max / (self.lookup_table[1] - self.lookup_table[0])))
+        self.lookup_table = (lut_low, lut_high)
+        self.scale = 1 / (self.lookup_table[1] - self.lookup_table[0])
 
     def set_shape(self, z, y, x):
+        self.poller.unregister(self.data_subscriber.socket)
         self.data_subscriber.socket.close()
 
         self.shape = (z, y, x)
@@ -97,13 +100,12 @@ class Displayer:
             bound=self.inbound[2])
 
         self.mip_image = np.zeros((self.shape[1] + 4 * self.shape[0],
-                                   self.shape[2] + 4 * self.shape[0]), self.dtype)
+                                   self.shape[2] + 4 * self.shape[0]), np.uint8)
         self.displayer_shape = self.mip_image.shape
+        self.poller.register(self.data_subscriber.socket, zmq.POLLIN)
 
         cv2.namedWindow(self.name, cv2.WINDOW_NORMAL)
         cv2.resizeWindow(self.name, self.displayer_shape[1], self.displayer_shape[0])
-
-
 
     def process(self):
         msg = self.data_subscriber.get_last()
@@ -113,6 +115,9 @@ class Displayer:
             mip_y = np.max(msg[1], axis=1)
             mip_x = np.max(msg[1], axis=2)
 
+            mip_z = (255 * np.clip((mip_z - self.lookup_table[0]) * self.scale, 0, 1)).astype(np.uint8)
+            mip_y = (255 * np.clip((mip_y - self.lookup_table[0]) * self.scale, 0, 1)).astype(np.uint8)
+            mip_x = (255 * np.clip((mip_x - self.lookup_table[0]) * self.scale, 0, 1)).astype(np.uint8)
 
             scaled_mip_y = np.repeat(mip_y, 4, axis=0)
             scaled_mip_x = np.repeat(mip_x, 4, axis=0)
@@ -122,23 +127,18 @@ class Displayer:
             self.mip_image[:self.shape[1], self.shape[2]:] = t_scaled_mip_x
             self.mip_image[self.shape[1]:, :self.shape[2]] = scaled_mip_y
 
-            self.mip_image = np.clip(self.mip_image,
-                                     self.lookup_table[0],
-                                     self.lookup_table[1])
-            self.mip_image = self.mip_image - self.lookup_table[0]
-            self.mip_image = (self.mip_image * self.scale).astype(np.uint8)
-        else:
-            self.mip_image = np.zeros_like(self.mip_image, dtype=np.uint8)
-
         cv2.imshow(self.name, self.mip_image)
         cv2.waitKey(1)
 
     def run(self):
         while self.running:
-            command = self.command_subscriber.recv_last()
-            if command:
-                self.command_subscriber.process(command)
-            else:
+
+            sockets = dict(self.poller.poll())
+
+            if self.command_subscriber.socket in sockets:
+                self.command_subscriber.handle()
+
+            elif self.data_subscriber.socket in sockets:
                 self.process()
 
     def shutdown(self):
