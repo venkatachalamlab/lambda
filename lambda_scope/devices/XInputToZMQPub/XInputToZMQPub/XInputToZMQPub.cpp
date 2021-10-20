@@ -8,12 +8,12 @@
 //      Configuration Properties -> Linker -> Input -> Additional Dependencies = Xinput9_1_0.lib
 //      Change "Configuration" (top-left) to "Debug" for the next steps.
 //      Configuration Properties -> Buld Events -> Post-Build Event -> Command Line =
-//                                  if not exist "$(LAMBDA)\software\cpp\vlab\bin\debug\" mkdir "$(LAMBDA)\software\cpp\vlab\bin\debug"
-//									copy  "$(OutDir)*.exe" "$(LAMBDA)\software\cpp\vlab\bin\debug"
-//									copy  "$(OutDir)*.dll" "$(LAMBDA)\software\cpp\vlab\bin\debug"
+//                                  if not exist "$(LAMBDA_CPP_BIN)" mkdir "$(LAMBDA_CPP_BIN)"
+//									copy  "$(OutDir)*.exe" "$(LAMBDA_CPP_BIN)"
+//									copy  "$(OutDir)*.dll" "$(LAMBDA_CPP_BIN)"
 //     
 //    
-// Ensure 'CXXOPTS' and 'LAMBDA' are in your system path (set them as environment variables).
+// Ensure 'CXXOPTS' and 'LAMBDA_CPP_BIN' are in your system path (set them as environment variables).
 
 
 

@@ -1,2 +1,2 @@
-#TargetFrameworkVersion=v4.0:PlatformToolSet=v141:EnableManagedIncrementalBuild=false:VCToolArchitecture=Native32Bit:WindowsTargetPlatformVersion=10.0.18362.0
-Debug|x64|C:\Users\lab\workspace\venkatachalamlab\software\cpp\vlab\devices\XInputToZMQPub\|
+#TargetFrameworkVersion=v4.0:PlatformToolSet=v141:EnableManagedIncrementalBuild=false:VCToolArchitecture=Native32Bit:WindowsTargetPlatformVersion=10.0.17763.0
+Debug|x64|C:\src\lambda\lambda_scope\devices\XInputToZMQPub\|
