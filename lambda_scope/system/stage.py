@@ -37,7 +37,7 @@ def execute(job, fmt: str, camera: str):
     processor_out = str(6001)
     commands_out = str(6002)
 
-    xy_zaber_usb_port = "COM6"
+    zaber_usb_port = "COM6"
 
     # (_, _, shape) = array_props_from_string(fmt)
     
@@ -87,7 +87,7 @@ def execute(job, fmt: str, camera: str):
                       "--inbound=" + forwarder_out,
                       "--outbound=" + forwarder_in,
                       "--commands_port=L" + commands_out,
-                      "--usb_port=" + xy_zaber_usb_port]))
+                      "--usb_port=" + zaber_usb_port]))
 
     # job.append(Popen(["lambda_hub",
     #                   "--inbound=L" + obound,

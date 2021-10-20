@@ -19,6 +19,7 @@ console_scripts = [
     'lambda_displayer=lambda_scope.devices.displayer:main',
     'lambda_data_hub=lambda_scope.devices.data_hub:main',
     'lambda_writer=lambda_scope.devices.writer:main',
+    'lambda_processor=lambda_scope.devices.processor:main'
     'lambda=lambda_scope.system.lambda:main'
 ]
 
