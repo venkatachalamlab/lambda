@@ -1,6 +1,6 @@
 #! python
 #
-# Copyright 2016
+# Copyright 2021
 # Author: Vivek Venkatachalam, Mahdi Torkashvand
 #
 # This is a consumer of raw messages from an XINPUT device. Messages are

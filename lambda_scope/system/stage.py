@@ -79,9 +79,7 @@ def execute(job, fmt: str, camera: str):
 
     job.append(Popen(["commands",
                       "--inbound=L" + processor_out,
-                      "--outbound=" + commands_out,
-                      "--left_stick_max=300",
-                      "--right_stick_max=8000"]))
+                      "--outbound=" + forwarder_in]))
 
     job.append(Popen(["zaber",
                       "--inbound=" + forwarder_out,
