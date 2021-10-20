@@ -2,10 +2,8 @@
 #
 # This runs lambda.
 #
-# Copyright 2019
+# Copyright 2021
 # Author: Vivek Venkatachalam, Mahdi Torkashvand
-
-
 
 """
 Run all Lambda components.
@@ -20,17 +18,13 @@ Options:
     --camera=<number>                   1 for camera1, 2 for camera2 and * to run both.
                                             [default: *]
 """
-
-from subprocess import Popen
-from os import kill
-import signal
 import time
+import signal
+from subprocess import Popen
 
 from docopt import docopt
 
-from vlab.zmq.type_utils import mip_fmt_from_fmt, array_props_from_string
-
-
+from lambda_scope.devices.utils import array_props_from_string
 
 def execute(job, fmt: str, camera: str):
     """This runs all devices."""
