@@ -7,5 +7,5 @@
 ![microscope_schematic](https://user-images.githubusercontent.com/31863323/134268437-9e66aebd-546b-4f3c-be70-badb08cc8b54.png)
 ## Customized Software
 
-![lambda_software](https://user-images.githubusercontent.com/31863323/137994883-888ec496-350b-49ff-a18e-54f9bbd0f1c1.png)
+![lambda_software](https://user-images.githubusercontent.com/31863323/138184682-abd839be-402a-4e53-810a-0ce41980799f.png)
 [update diagram](https://drive.google.com/file/d/1p9IKQEOXa4xgkiXP0otaJxKXWX_EqZna/view?usp=sharing)
