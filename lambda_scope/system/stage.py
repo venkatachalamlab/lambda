@@ -35,9 +35,9 @@ def execute(job, fmt: str, camera: str):
 
     XInputToZMQPub_out = str(6000)
     processor_out = str(6001)
-    commands_out = str(6002)
 
-    zaber_usb_port = "COM6"
+    zaber_usb_port_xy = "COM6"
+    zaber_usb_port_z = "COM5"
 
     # (_, _, shape) = array_props_from_string(fmt)
     
@@ -84,8 +84,8 @@ def execute(job, fmt: str, camera: str):
     job.append(Popen(["zaber",
                       "--inbound=" + forwarder_out,
                       "--outbound=" + forwarder_in,
-                      "--commands_port=L" + commands_out,
-                      "--usb_port=" + zaber_usb_port]))
+                      "--usb_port_xy=" + zaber_usb_port_xy,
+                      "--usb_port_z=" + zaber_usb_port_z]))
 
     # job.append(Popen(["lambda_hub",
     #                   "--inbound=L" + obound,

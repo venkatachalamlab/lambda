@@ -95,11 +95,14 @@ class XboxStageCommands():
 
             tokens = message.split(" ")
 
-            if message in ["X pressed", "Y pressed", "B pressed"]:
+            if message in ["X pressed", "B pressed"]:
                 if tracking:
                     self.publish("tracker stop")
                     tracking = False
-                self.publish("zaber z_move 0")
+                self.publish("zaber move_z 0")
+
+            elif message == "Y pressed":
+                self.publish("zaber home_z")
 
             elif message == "A pressed":
                 if tracking:
@@ -110,32 +113,32 @@ class XboxStageCommands():
                     tracking = True
 
             elif message == "dpad_up pressed":
-                self.publish("zaber z_move 1")
+                self.publish("zaber move_z 1")
 
             elif message == "dpad_up released":
-                self.publish("zaber z_move 0")
+                self.publish("zaber move_z 0")
 
             elif message == "dpad_down pressed":
-                self.publish("zaber z_move -1")
+                self.publish("zaber move_z -1")
 
             elif message == "dpad_down released":
-                self.publish("zaber z_move 0")
+                self.publish("zaber move_z 0")
 
             elif message == "left_shoulder pressed":
-                self.publish("zaber z_change_vel 1")
+                self.publish("zaber change_vel_z 1")
 
             elif message == "right_shoulder pressed":
-                self.publish("zaber z_change_vel -1")
+                self.publish("zaber change_vel_z -1")
 
             elif tokens[0] == "left_stick":
                 xspeed = float(tokens[1]) / 2**15
                 yspeed = float(tokens[2]) / 2**15
-                self.publish("zaber xy_fine_vel", xspeed, yspeed)
+                self.publish("zaber fine_vel_xy", xspeed, yspeed)
 
             elif tokens[0] == "right_stick":
                 xspeed = float(tokens[1]) / 2**15
                 yspeed = float(tokens[2]) / 2**15
-                self.publish("zaber xy_coarse_vel", xspeed, yspeed)
+                self.publish("zaber coarse_vel_xy", xspeed, yspeed)
 
             else:
                 print("Unexpected message received: ", message)
