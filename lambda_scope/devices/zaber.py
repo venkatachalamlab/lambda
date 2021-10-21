@@ -58,9 +58,6 @@ class ZaberController():
                  "stop": "/00 0 stop\r",
                  "warning_clear": "/00 0 warnings clear\r"}
 
-    _XY = np.array([[[1, 0], [0, 1]],
-                    [[0, 1], [1, 0]]])
-
     def __init__(
             self,
             inbound: Tuple[str, int, bool],
@@ -71,23 +68,18 @@ class ZaberController():
 
         self.position = {}
 
-        self.port_xy = zaber_usb_port_xy
-        self.port_z = zaber_usb_port_z
-        self.is_port_open_xy = 0
-        self.is_port_open_z = 0
         self.name = name
         self.device_status = 1
+        self.is_port_open_z = 0
+        self.is_port_open_xy = 0
+        self.port_z = zaber_usb_port_z
+        self.port_xy = zaber_usb_port_xy
 
         self.speed_z = 1.0
+        self.mid_xy = 100000.0
         self.speed_max_z = 1000.0
-
-        self.coarse_speed_max_xy = 1000.0
         self.fine_speed_max_xy = 100.0
-
-        self.max_z = 20000.0
-        self.max_xy = 200000.0
-
-        self.converter_idx = 0
+        self.coarse_speed_max_xy = 1000.0
 
         self.command_subscriber = ObjectSubscriber(
             obj=self,
@@ -101,46 +93,40 @@ class ZaberController():
             port=outbound[1],
             bound=outbound[2])
 
-        self.time_out = 5
-        self.init_t = time.time()
-
         while not self.is_port_open_xy and not self.is_port_open_z:
             self.serial_obj_xy = Serial(port=self.port_xy, baudrate=115200, timeout=0)
             self.serial_obj_z = Serial(port=self.port_z, baudrate=115200, timeout=0)
             self.is_port_open_xy = self.serial_obj_xy.is_open
             self.is_port_open_z = self.serial_obj_z.is_open
-            if time.time() - self.init_t > self.time_out:
-                print("Zaber motors not found.")
-                raise Exception()
-
-        self.execute(self.serial_obj_xy, "get_device_id")
-        self.execute(self.serial_obj_z, "get_device_id")
-
-        self.execute(self.serial_obj_xy, "get_version")
-        self.execute(self.serial_obj_z, "get_version")
 
         self.execute(self.serial_obj_xy, "set_system_access", n=2)
         self.execute(self.serial_obj_z, "set_system_access", n=2)
 
-        self.execute(self.serial_obj_xy, "get_system_serial")
-        self.execute(self.serial_obj_z, "get_system_serial")
-
-        self.execute(self.serial_obj_xy, "get_peripheral_id")
-        self.execute(self.serial_obj_z, "get_peripheral_id")
-
-        self.execute(self.serial_obj_xy, "get_resolution")
-        self.execute(self.serial_obj_z, "get_resolution")
-
-        self.set_limit_xy(20000)
+        self.clear_warnings()
         self.set_max_velocities(self.coarse_speed_max_xy, self.speed_max_z)
+
+        self.stop_xy()
+        self.set_limit_xy(10000)
+
+        self.home_z()
+        time.sleep(5)
+        self.stop_z()
+
+        self.clear_warnings()
+        self.execute(self.serial_obj_z, "set_pos", pos=0)
+        print("stage velocity in z direction: {} um/s".format(self.speed_z))
+        print("Stage: Initialized.")
+
+    def clear_warnings(self):
+        self.execute(self.serial_obj_xy, "warning_clear")
+        self.execute(self.serial_obj_z, "warning_clear")
 
     def set_limit_xy(self, limit):
         """Sets software limits for the motors."""
-        half_way_pos = self.max_xy / 2
-        upper_limit_pos = half_way_pos + limit
-        lower_limit_pos = half_way_pos - limit
+        upper_limit_pos = self.mid_xy + limit
+        lower_limit_pos = self.mid_xy - limit
 
-        half_way_data = data_from_pos_xy(half_way_pos)
+        half_way_data = data_from_pos_xy(self.mid_xy)
         upper_limit_data = data_from_pos_xy(upper_limit_pos)
         lower_limit_data = data_from_pos_xy(lower_limit_pos)
 
@@ -159,7 +145,16 @@ class ZaberController():
     def get_pos_xy(self):
         """Returns the current position."""
         position = self.execute(self.serial_obj_xy, "get_pos")
-        return pos_from_data_xy(position[-2]), pos_from_data_xy(position[-1])
+        return pos_from_data_xy(int(position[-1])), pos_from_data_xy(int(position[-2]))
+
+    def print_pos(self):
+        """displays the current x, y and z location"""
+        position_xy = self.get_pos_xy()
+        position_z = self.execute(self.serial_obj_z, "get_pos")
+        x = (position_xy[0] - self.mid_xy) / 1000
+        y = (position_xy[1] - self.mid_xy) / 1000
+        z = (pos_from_data_z(int(position_z[-2]))) / 1000
+        print("(z, y, x) coordinate: ({}, {}, {})".format(round(z, 3), round(y, 3), round(x, 3)))
 
     def move_z(self, arg):
         """Starts moving in the direction specified by arg"""
@@ -169,31 +164,28 @@ class ZaberController():
     def home_z(self):
         """Sends z stage to its lowest point and sets the position to 0"""
         self.execute(self.serial_obj_z, "home")
-        self.execute(self.serial_obj_z, "set_pos", pos=0)
 
     def change_vel_z(self, arg):
         """Changes velocity of z exponentially"""
-        if 1.0 < self.speed_z ** (2 * arg) < self.speed_max_z:
-            self.speed_z = np.rint(self.speed_z ** (2 * arg))
-            self.execute(self.serial_obj_z, "set_maxspeed", data_from_vel_z(self.speed_z))
+        temp = self.speed_z * (2 ** arg)
+        if 1.0 <= temp < self.speed_max_z:
+            self.speed_z = np.rint(temp)
 
-        print("velocity in z direction: {} um".format(self.speed_z))   
+        print("stage velocity in z direction: {} um/s".format(self.speed_z))
 
     def fine_vel_xy(self, xspeed, yspeed):
         """Makes x and y motor to move at specified speeds."""
-        v1, v2 = np.matmul(self._XY[self.converter_idx], (xspeed, yspeed))
-        v1_data = data_from_vel_xy(v1 * self.fine_speed_max_xy)
-        v2_data = data_from_vel_xy(v2 * self.fine_speed_max_xy)
-        self.execute(self.serial_obj_xy, "vel", axis=1, speed=v1_data)
-        self.execute(self.serial_obj_xy, "vel", axis=2, speed=v2_data)
+        xspeed_data = data_from_vel_xy(xspeed * self.fine_speed_max_xy)
+        yspeed_data = data_from_vel_xy(yspeed * self.fine_speed_max_xy)
+        self.execute(self.serial_obj_xy, "vel", axis=1, speed=yspeed_data)
+        self.execute(self.serial_obj_xy, "vel", axis=2, speed=xspeed_data)
 
     def coarse_vel_xy(self, xspeed, yspeed):
         """Makes x and y motor to move at specified speeds."""
-        v1, v2 = np.matmul(self._XY[self.converter_idx], (xspeed, yspeed))
-        v1_data = data_from_vel_xy(v1 * self.coarse_speed_max_xy)
-        v2_data = data_from_vel_xy(v2 * self.coarse_speed_max_xy)
-        self.execute(self.serial_obj_xy, "vel", axis=1, speed=v1_data)
-        self.execute(self.serial_obj_xy, "vel", axis=2, speed=v2_data)
+        xspeed_data = data_from_vel_xy(xspeed * self.coarse_speed_max_xy)
+        yspeed_data = data_from_vel_xy(yspeed * self.coarse_speed_max_xy)
+        self.execute(self.serial_obj_xy, "vel", axis=1, speed=yspeed_data)
+        self.execute(self.serial_obj_xy, "vel", axis=2, speed=xspeed_data)
 
     def update_position(self):
         """Iquires the position and updates the logger."""
@@ -204,11 +196,19 @@ class ZaberController():
         """Sets the converter idx used to get correct x,y coordinates"""
         self.converter_idx = idx
 
+    def stop_z(self):
+        """Stops z axis"""
+        self.execute(self.serial_obj_z, "stop")
+
+    def stop_xy(self):
+        """Stops x,y axes"""
+        self.execute(self.serial_obj_xy, "stop")
+
     def shutdown(self):
         """Shuts down the device"""
         self.device_status = 0
-        self.execute(self.serial_obj_xy, "stop")
-        self.execute(self.serial_obj_z, "stop")
+        self.stop_z()
+        self.stop_xy()
         self.execute(self.serial_obj_xy, "warning_clear")
         self.execute(self.serial_obj_z, "warning_clear")
         self.serial_obj_xy.close()
@@ -236,19 +236,6 @@ class ZaberController():
         r = r.decode("utf-8")[1:-2]
         return r.split(" ")
 
-
-
-def find_digits(message):
-    """Returns the digits in a string message."""
-
-    number = ""
-    for i in message:
-        if i.isdigit():
-            number = number + i
-    if not number:
-        number = "0"
-    return int(number)
-
 def pos_from_data_z(data):
     return data * 2 / 21
 
@@ -274,7 +261,7 @@ def data_from_vel_xy(vel):
     return int(vel * 21 * 1.6384)
 
 def main():
-    """Create and start DragonflyDevice."""
+    """Create and start zaber devices."""
 
     arguments = docopt(__doc__)
 

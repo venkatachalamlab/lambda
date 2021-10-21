@@ -33,23 +33,6 @@ from lambda_scope.zmq.publisher import Publisher
 from lambda_scope.zmq.subscriber import Subscriber
 from lambda_scope.zmq.utils import parse_host_and_port
 
-def get_last(receiver):
-    """This retrieves the most recent message sent to a socket using
-    func. If no messages are available, this will return None."""
-
-    m = None
-
-    while True:
-        try:
-            m = receiver(flags=zmq.NOBLOCK)
-        except zmq.error.Again:
-            break
-        except:
-            raise
-
-    return m
-
-
 class XboxStageCommands():
 
     def __init__(self,
@@ -59,7 +42,7 @@ class XboxStageCommands():
         self.subscriber = Subscriber(inbound[1],
                                      inbound[0],
                                      inbound[2])
-                    
+
         self.publisher = Publisher(outbound[1],
                                    outbound[0],
                                    outbound[2])
@@ -73,21 +56,20 @@ class XboxStageCommands():
             b"left_shoulder pressed", b"right_shoulder pressed"
             ]
 
-        self.subscriber.setsockopt(zmq.UNSUBSCRIBE, "")
+        self.subscriber.remove_subscription("")
         for button in buttons:
-            self.subscriber.setsockopt(zmq.SUBSCRIBE, button)
+            self.subscriber.add_subscription(button)
 
     def run(self):
         tracking = False
 
         def _finish(*_):
-            print("commands: Shutting down.")
             raise SystemExit
 
         signal.signal(signal.SIGINT, _finish)
 
         while True:
-            message = get_last(self.subscriber.recv_string)
+            message = self.subscriber.recv_last_string()
 
             if message is None:
                 time.sleep(0.01)
@@ -99,14 +81,21 @@ class XboxStageCommands():
                 if tracking:
                     self.publish("tracker stop")
                     tracking = False
-                self.publish("zaber move_z 0")
+                self.publish("zaber stop_z")
+                self.publish("zaber stop_xy")
+                self.publish("zaber print_pos")
 
             elif message == "Y pressed":
+                if tracking:
+                    self.publish("tracker stop")
+                    tracking = False
+                self.publish("zaber stop_xy")
                 self.publish("zaber home_z")
 
             elif message == "A pressed":
                 if tracking:
                     self.publish("tracker stop")
+                    self.publish("zaber stop_xy")
                     tracking = False
                 else:
                     self.publish("tracker start")
@@ -116,19 +105,19 @@ class XboxStageCommands():
                 self.publish("zaber move_z 1")
 
             elif message == "dpad_up released":
-                self.publish("zaber move_z 0")
+                self.publish("zaber stop_z")
 
             elif message == "dpad_down pressed":
                 self.publish("zaber move_z -1")
 
             elif message == "dpad_down released":
-                self.publish("zaber move_z 0")
+                self.publish("zaber stop_z")
 
             elif message == "left_shoulder pressed":
-                self.publish("zaber change_vel_z 1")
+                self.publish("zaber change_vel_z -1")
 
             elif message == "right_shoulder pressed":
-                self.publish("zaber change_vel_z -1")
+                self.publish("zaber change_vel_z 1")
 
             elif tokens[0] == "left_stick":
                 xspeed = float(tokens[1]) / 2**15
@@ -148,11 +137,6 @@ class XboxStageCommands():
         for arg in args:
             command += " " + str(arg)
         self.publisher.send(command)
-
-    def shutdown(self, *_):
-        """This terminates the processor."""
-        print("Shutting down the XInput Processor.")
-        raise SystemExit
 
 def main():
     """CLI entry point."""

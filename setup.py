@@ -22,6 +22,7 @@ console_scripts = [
     'lambda_processor=lambda_scope.devices.processor:main',
     'lambda_commands=lambda_scope.devices.commands:main',
     'lambda_zaber=lambda_scope.devices.zaber:main',
+    'lambda_stage=lambda_scope.system.stage:main',
     'lambda=lambda_scope.system.lambda:main'
 ]
 

@@ -40,7 +40,7 @@ def execute(job, fmt: str, camera: str):
     zaber_usb_port_z = "COM5"
 
     # (_, _, shape) = array_props_from_string(fmt)
-    
+
 
     # if camera == "*":
     #     cameras = [1, 2]
@@ -54,8 +54,8 @@ def execute(job, fmt: str, camera: str):
 
     # displayer_fmt = "UINT8_YX_" + str(shape[0]) + "_" + str(shape[1])
     # filter_fmt = "UINT8_ZYX_1_" + str(shape[0]) + "_" + str(shape[1])
-    
-        
+
+
     # zaber_outbound = commands_out2
 
 
@@ -71,17 +71,17 @@ def execute(job, fmt: str, camera: str):
     job.append(Popen(["XInputToZMQPub",
                       "--outbound=*:" + XInputToZMQPub_out]))
 
-    job.append(Popen(["processor",
+    job.append(Popen(["lambda_processor",
                       "--inbound=L" + XInputToZMQPub_out,
                       "--outbound=" + processor_out,
-                      "--deadzone=3000",
-                      "--threshold=30"]))
+                      "--deadzone=5000",
+                      "--threshold=50"]))
 
-    job.append(Popen(["commands",
+    job.append(Popen(["lambda_commands",
                       "--inbound=L" + processor_out,
                       "--outbound=" + forwarder_in]))
 
-    job.append(Popen(["zaber",
+    job.append(Popen(["lambda_zaber",
                       "--inbound=" + forwarder_out,
                       "--outbound=" + forwarder_in,
                       "--usb_port_xy=" + zaber_usb_port_xy,
@@ -225,11 +225,11 @@ if __name__ == "__main__":
 #          "--inbound=" + forwarder_inbound_port,
 #          "--outbound=" + forwarder_outbound_port],
 
-        
 
-        
 
-        
+
+
+
 
 
     #     ["image_displayer",
@@ -279,7 +279,7 @@ if __name__ == "__main__":
     #      "--height=" + str(shape[0]),
     #      "--exposure_time=25000"],
 
-        
+
 
     #     ["valve_controller"]
 

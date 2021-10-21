@@ -45,9 +45,9 @@ Options:
     --outbound=HOST:PORT    Binding for outbound messages.
                                 [default: 6001]
     --deadzone=DEADZONE     Thumbstick deadzone.
-                                [default: 3000]
+                                [default: 5000]
     --threshold=THRESHOLD   Trigger activation threshold.
-                                [default: 30]
+                                [default: 50]
     --console               Stream to stdout.
 """
 
@@ -104,22 +104,6 @@ GamepadButtonMask = {
     "Y"             : 0x8000
 }
 
-def get_last(receiver):
-    """This retrieves the most recent message sent to a socket using
-    func. If no messages are available, this will return None."""
-
-    msg = None
-
-    while True:
-        try:
-            msg = receiver(flags=zmq.NOBLOCK)
-        except zmq.error.Again:
-            break
-        except:
-            raise
-
-    return msg
-
 class XInputProcessor():
 
     def __init__(self,
@@ -139,7 +123,7 @@ class XInputProcessor():
         self.subscriber = Subscriber(inbound[1],
                                      inbound[0],
                                      inbound[2])
-                    
+
         self.publisher = Publisher(outbound[1],
                                    outbound[0],
                                    outbound[2])
@@ -150,7 +134,7 @@ class XInputProcessor():
         signal.signal(signal.SIGINT, self.shutdown)
 
         while True:
-            raw = get_last(self.subscriber.recv)
+            raw = self.subscriber.recv_last()
 
             if raw is None:
                 time.sleep(0.001)
@@ -170,7 +154,6 @@ class XInputProcessor():
 
     def shutdown(self, *_):
         """This terminates the processor."""
-        print("Xinput Processor: Shutting down.")
         raise SystemExit
 
     @staticmethod
