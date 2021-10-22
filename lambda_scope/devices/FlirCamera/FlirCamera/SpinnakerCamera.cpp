@@ -2,7 +2,7 @@
 #include "pch.h"
 
 #include "SpinnakerCamera.h"
-
+#include "macros.h"
 
 
 
@@ -75,7 +75,7 @@ void SpinnakerCamera::set_binning(void)
 		HorizontalBinSize = ptrBinningHorizontal->GetValue();
 		VerticalBinSize = ptrBinningVertical->GetValue();
 
-		std::cout << "FlirCamera #" << SerialNumber << ": binning is " << VerticalBinSize << "x" << HorizontalBinSize << std::endl;
+		DEBUG("FlirCamera #" << SerialNumber << ": binning is " << VerticalBinSize << "x" << HorizontalBinSize);
 	}
 	catch (Spinnaker::Exception &e)
 	{
@@ -94,7 +94,7 @@ void SpinnakerCamera::set_width(void)
 		Spinnaker::GenApi::CIntegerPtr ptrWidth = nodeMap.GetNode("Width");
 		ptrWidth->SetValue(Width);
 		Width = ptrWidth->GetValue();
-		std::cout << "FlirCamera #" << SerialNumber << ": Width is " << Width << std::endl;
+		DEBUG("FlirCamera #" << SerialNumber << ": Width is " << Width);
 	}
 	catch (Spinnaker::Exception &e)
 	{
@@ -112,7 +112,7 @@ void SpinnakerCamera::set_height(void)
 		Spinnaker::GenApi::CIntegerPtr ptrHeight = nodeMap.GetNode("Height");
 		ptrHeight->SetValue(Height);
 		Height = ptrHeight->GetValue();
-		std::cout << "FlirCamera #" << SerialNumber << ": Height is " << Height << std::endl;
+		DEBUG("FlirCamera #" << SerialNumber << ": Height is " << Height);
 	}
 	catch (Spinnaker::Exception &e)
 	{
@@ -137,7 +137,7 @@ void SpinnakerCamera::set_Offset(void)
 		ptrOffsetY->SetValue(OffsetY);
 		OffsetX = ptrOffsetX->GetValue();
 		OffsetY = ptrOffsetY->GetValue();
-		std::cout << "FlirCamera #" << SerialNumber << ": Offset is (" << OffsetY << "," << OffsetX << ")" << std::endl;
+		DEBUG("FlirCamera #" << SerialNumber << ": Offset is (" << OffsetY << "," << OffsetX << ")");
 	}
 	catch (Spinnaker::Exception &e)
 	{
@@ -269,11 +269,11 @@ void SpinnakerCamera::SpinnakerCamera::set_exposuretime_and_framerate(double exp
 
 		ptrAcquisitionFrameRate->SetValue(framerate);
 		FrameRate = ptrAcquisitionFrameRate->GetValue();
-		std::cout << "FlirCamera #" << SerialNumber << ": Frame Rate is " << FrameRate << "(Hz)" << std::endl;
+		DEBUG("FlirCamera #" << SerialNumber << ": Frame Rate is " << FrameRate << "(Hz)");
 
 		ptrExposureTime->SetValue(exposuretime);
 		ExposureTime = ptrExposureTime->GetValue();
-		std::cout << "FlirCamera #" << SerialNumber << ": Exposure Time is " << ExposureTime << "(micro second)" << std::endl;
+		DEBUG("FlirCamera #" << SerialNumber << ": Exposure Time is " << ExposureTime << "(micro second)");
 
 	}
 
@@ -282,37 +282,6 @@ void SpinnakerCamera::SpinnakerCamera::set_exposuretime_and_framerate(double exp
 		std::cout << "Error: " << e.what() << std::endl;
 	}
 }
-/*
-void SpinnakerCamera::SpinnakerCamera::set_exposuretime(double exposuretime)
-{
-ptrCamera->BeginAcquisition();
-ptrCamera->EndAcquisition();
-Spinnaker::GenApi::INodeMap & nodeMap = ptrCamera->GetNodeMap();
-
-try
-{
-
-Spinnaker::GenApi::CFloatPtr ptrExposureTime = nodeMap.GetNode("ExposureTime");
-Spinnaker::GenApi::CFloatPtr ptrAcquisitionFrameRate = nodeMap.GetNode("AcquisitionFrameRate");
-
-FrameRate = (double)((int)(1000000 / (1.02 * exposuretime)));
-ptrAcquisitionFrameRate->SetValue(FrameRate);
-FrameRate = ptrAcquisitionFrameRate->GetValue();
-std::cout << "FlirCamera #" << SerialNumber << ": Frame Rate is " << FrameRate << "(Hz)" << std::endl;
-
-ptrExposureTime->SetValue(exposuretime);
-ExposureTime = ptrExposureTime->GetValue();
-std::cout << "FlirCamera #" << SerialNumber << ": Exposure Time is " << ExposureTime << "(micro second)" << std::endl;
-
-}
-
-catch (Spinnaker::Exception &e)
-{
-std::cout << "Error: " << e.what() << std::endl;
-}
-}
-
-*/
 
 void SpinnakerCamera::print_device_info(void)
 {
