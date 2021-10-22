@@ -187,6 +187,13 @@ class ZaberController():
         self.execute(self.serial_obj_xy, "vel", axis=1, speed=yspeed_data)
         self.execute(self.serial_obj_xy, "vel", axis=2, speed=xspeed_data)
 
+    def vel_xy(self, xspeed, yspeed):
+        """Makes x and y motor to move at specified speeds."""
+        xspeed_data = data_from_vel_xy(xspeed)
+        yspeed_data = data_from_vel_xy(yspeed)
+        self.execute(self.serial_obj_xy, "vel", axis=1, speed=yspeed_data)
+        self.execute(self.serial_obj_xy, "vel", axis=2, speed=xspeed_data)
+
     def update_position(self):
         """Iquires the position and updates the logger."""
         self.position["X"], self.position["Y"] = self.get_pos_xy()

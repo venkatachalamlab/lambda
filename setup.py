@@ -18,10 +18,12 @@ console_scripts = [
     'lambda_acquisition_board=lambda_scope.devices.acquisition_board:main',
     'lambda_displayer=lambda_scope.devices.displayer:main',
     'lambda_data_hub=lambda_scope.devices.data_hub:main',
+    'lambda_stage_data_hub=lambda_scope.devices.stage_data_hub:main',
     'lambda_writer=lambda_scope.devices.writer:main',
     'lambda_processor=lambda_scope.devices.processor:main',
     'lambda_commands=lambda_scope.devices.commands:main',
     'lambda_zaber=lambda_scope.devices.zaber:main',
+    'lambda_stage_tracker=lambda_scope.devices.stage_tracker:main',
     'lambda_stage=lambda_scope.system.stage:main',
     'lambda=lambda_scope.system.lambda:main'
 ]
