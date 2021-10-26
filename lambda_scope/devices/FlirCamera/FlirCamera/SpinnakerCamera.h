@@ -25,7 +25,6 @@ public:
 	void get_image(void *buffer);
 
 	std::size_t get_image_size_bytes();
-	std::string status();
 	Spinnaker::ImagePtr ptrImage;
 
 	int OffsetX = 0;
@@ -50,9 +49,4 @@ private:
 	void set_exposure_auto(std::string);
 	void set_exposure_mode(std::string);
 	void print_device_info(void);
-
-
-
-	std::string get_status();
-
 };

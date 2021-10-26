@@ -83,9 +83,6 @@ void SpinnakerCamera::set_binning(void)
 	}
 }
 
-
-
-
 void SpinnakerCamera::set_width(void)
 {
 	try
@@ -101,8 +98,6 @@ void SpinnakerCamera::set_width(void)
 		std::cout << "Error: " << e.what() << std::endl;
 	}
 }
-
-
 
 void SpinnakerCamera::set_height(void)
 {
@@ -120,7 +115,6 @@ void SpinnakerCamera::set_height(void)
 	}
 }
 
-
 void SpinnakerCamera::set_Offset(void)
 {
 	try
@@ -128,7 +122,6 @@ void SpinnakerCamera::set_Offset(void)
 		Spinnaker::GenApi::INodeMap & nodeMap = ptrCamera->GetNodeMap();
 		Spinnaker::GenApi::CIntegerPtr ptrOffsetX = nodeMap.GetNode("OffsetX");
 		Spinnaker::GenApi::CIntegerPtr ptrOffsetY = nodeMap.GetNode("OffsetY");
-
 
 		OffsetY = (600 / VerticalBinSize) - (Height / 2);
 		OffsetX = (960 / HorizontalBinSize) - (Width / 2);
@@ -144,11 +137,6 @@ void SpinnakerCamera::set_Offset(void)
 		std::cout << "Error: " << e.what() << std::endl;
 	}
 }
-
-
-
-
-
 
 void SpinnakerCamera::set_acquisition_mode(std::string acquisitionmode)
 {
@@ -176,8 +164,6 @@ void SpinnakerCamera::set_acquisition_mode(std::string acquisitionmode)
 	}
 }
 
-
-
 void SpinnakerCamera::set_frame_rate_auto(std::string framerateauto)
 {
 	Spinnaker::GenApi::INodeMap & nodeMap = ptrCamera->GetNodeMap();
@@ -199,8 +185,6 @@ void SpinnakerCamera::set_frame_rate_auto(std::string framerateauto)
 		std::cout << "Error: " << e.what() << std::endl;
 	}
 }
-
-
 
 void SpinnakerCamera::set_exposure_auto(std::string exposureauto)
 {
@@ -229,8 +213,6 @@ void SpinnakerCamera::set_exposure_auto(std::string exposureauto)
 		std::cout << "Error: " << e.what() << std::endl;
 	}
 }
-
-
 
 void SpinnakerCamera::set_exposure_mode(std::string exposuremode)
 {
@@ -263,7 +245,6 @@ void SpinnakerCamera::SpinnakerCamera::set_exposuretime_and_framerate(double exp
 
 	try
 	{
-
 		Spinnaker::GenApi::CFloatPtr ptrExposureTime = nodeMap.GetNode("ExposureTime");
 		Spinnaker::GenApi::CFloatPtr ptrAcquisitionFrameRate = nodeMap.GetNode("AcquisitionFrameRate");
 
@@ -274,7 +255,6 @@ void SpinnakerCamera::SpinnakerCamera::set_exposuretime_and_framerate(double exp
 		ptrExposureTime->SetValue(exposuretime);
 		ExposureTime = ptrExposureTime->GetValue();
 		DEBUG("FlirCamera #" << SerialNumber << ": Exposure Time is " << ExposureTime << "(micro second)");
-
 	}
 
 	catch (Spinnaker::Exception &e)
@@ -313,16 +293,12 @@ void SpinnakerCamera::print_device_info(void)
 	{
 		std::cout << "Error: " << e.what() << std::endl;
 	}
-
 }
-
 
 void SpinnakerCamera::begin_acquisition()
 {
 	ptrCamera->BeginAcquisition();
 }
-
-
 
 void SpinnakerCamera::end_acquisition()
 {
@@ -337,66 +313,19 @@ void SpinnakerCamera::deinitialize_camera()
 	system_->ReleaseInstance();
 }
 
-
-
-
-
-
-std::string SpinnakerCamera::get_status()
-{
-	std::ostringstream s, w, h, e, sn;
-
-	w << Width;
-	h << Height;
-	e << ExposureTime;
-	sn << SerialNumber;
-
-	std::string str_w, str_h, str_e, str_s, str_sn;
-	str_w = w.str();
-	str_h = h.str();
-	str_e = e.str();
-	str_sn = sn.str();
-
-	s << "{\"camera" << str_sn << "\":{\"width\": " << str_w << ", \"height\": " << str_h << ", \"exposretime\": " << str_e << "}}";
-	return s.str();
-}
-
-
-
-std::string SpinnakerCamera::status()
-{
-	std::ostringstream msg;
-
-	msg << "hub " << get_status();
-
-	return msg.str();
-}
-
 std::size_t SpinnakerCamera::get_image_size_bytes()
 {
-
 	return Height * Width;
-
 }
 
 void SpinnakerCamera::get_image(void *buffer)
 {
-
 	ptrImage = ptrCamera->GetNextImage();
 	std::memcpy(buffer, ptrImage->GetData(), get_image_size_bytes());
-
 }
-
-
 
 int SpinnakerCamera::get_device_count()
 {
 	int numCameras = camList_.GetSize();
 	return numCameras;
 }
-
-
-
-
-
-

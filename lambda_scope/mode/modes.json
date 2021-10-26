@@ -11,7 +11,15 @@
         "filter1": 4,
         "filter2": 4,
         "total_volumes": 1,
-        "rest_time": 0
+        "rest_time": 0,
+        "bottom_scope_shape": [1, 512, 512],
+        "bottom_scope_saving_mode": 0,
+        "tracker_crop_size": 300,
+        "tracker_feature_size": 2500,
+        "tracker_camera_source": 1,
+        "bottom_scope_exposure_rate": [24000, 40],
+        "stage_xy_limit": 15000,
+        "stage_max_velocities": [1000, 1000]
     },
     "confocal": {
         "saving_mode": 1,
@@ -25,6 +33,14 @@
         "filter1": 1,
         "filter2": 1,
         "total_volumes": 1,
-        "rest_time": 0
+        "rest_time": 0,
+        "bottom_scope_shape": [1, 512, 512],
+        "bottom_scope_saving_mode": 0,
+        "tracker_crop_size": 300,
+        "tracker_feature_size": 2500,
+        "tracker_camera_source": 1,
+        "bottom_scope_exposure_rate": [24000, 40],
+        "stage_xy_limit": 15000,
+        "stage_max_velocities": [1000, 1000]
     }
 }

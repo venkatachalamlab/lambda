@@ -85,7 +85,6 @@ def execute(job, fmt: str, camera: str):
                           "--commands=" + forwarder_out,
                           "--name=tracker_displayer"]))
 
-
     # job.append(Popen(["experiment_runner_v2",
     #                   "--inbound=L" + forwarder_out,
     #                   "--outbound=L"+ forwarder_in,
@@ -154,33 +153,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
-#     GENERAL_COMMANDS = [
-
-
-
-
-
-    #     ["tracker_device",
-    #      "--commands_in=L" + forwarder_outbound_port,
-    #      "--data_in=L" + camera_data_port,
-    #      "--commands_out=L" + forwarder_inbound_port,
-    #      "--image_out=" + image_out,
-    #      "--format=" + displayer_fmt,
-    #      "--system=" + system.lower()],
-
-
-
-
-
-
-
-    #     ["valve_controller"]
-
-    # ]
-
-

@@ -17,7 +17,9 @@ Options:
                                             [default: localhost:5000]
     --server=PORT                       Binding to server.
                                             [default: 5003]
-    --camera=NUMBER                     Camera number.
+    --zyla_camera=NUMBER                Camera number.
+                                            [default: *]
+    --flir_camera=NUMBER                Camera number.
                                             [default: *]
     --format=UINT16_ZYX_22_512_1024     Image format.
                                             [default: UINT16_ZYX_25_512_1024]
@@ -45,7 +47,8 @@ class LambdaHub(Hub):
             inbound: Tuple[str, int, bool],
             outbound: Tuple[str, int, bool],
             server: int,
-            camera: str,
+            zyla_camera: str,
+            flir_camera: str,
             mode_directory: str,
             fmt: str,
             name="hub"):
@@ -56,11 +59,15 @@ class LambdaHub(Hub):
         self.mode_directory = mode_directory
         self.mode_dict = {}
 
-        if camera == "*":
-            self.cameras = [1, 2]
+        if zyla_camera == "*":
+            self.zyla_cameras = [1, 2]
         else:
-            self.cameras = [int(camera)]
+            self.zyla_cameras = [int(zyla_camera)]
 
+        if flir_camera == "*":
+            self.flir_cameras = [1, 2]
+        else:
+            self.flir_cameras = [int(flir_camera)]
 
     def set_mode(self, mode):
         mode_file = os.path.join(self.mode_directory , "modes.json")
@@ -74,10 +81,10 @@ class LambdaHub(Hub):
                 self._daq_set_laser(i, self.mode_dict["laser_power"][i][j], j)
         self._daq_set_las_continuous(self.mode_dict["laser_output_continuous"])
         self._writer_set_saving_mode(self.mode_dict["saving_mode"])
-        self._camera_set_trigger_mode(self.mode_dict["camera_trigger_mode"])
+        self._zyla_camera_set_trigger_mode(self.mode_dict["zyla_camera_trigger_mode"])
         self._dragonfly_set_imaging_mode(self.mode_dict["dragonfly_imaging_mode"])
         self.shape = self.mode_dict["shape"]
-        self._camera_set_shape(*self.shape)
+        self._zyla_camera_set_shape(*self.shape)
         self._writer_set_shape(*self.shape)
         self._data_hub_set_shape(*self.shape)
         self._displayer_set_shape(*self.shape)
@@ -87,16 +94,33 @@ class LambdaHub(Hub):
         self._dragonfly_set_filter(1, self.mode_dict["filter1"])
         self._dragonfly_set_filter(2, self.mode_dict["filter2"])
         self._data_hub_set_timer(self.mode_dict["total_volumes"], self.mode_dict["rest_time"])
-
+        self._flir_camera_stop()
+        self.bottom_scope_shape = self.mode_dict["bottom_scope_shape"]
+        self._flir_camera_set_height(self.bottom_scope_shape[1])
+        self._flir_camera_set_width(self.bottom_scope_shape[2])
+        self._stage_data_hub_set_shape(*self.bottom_scope_shape)
+        self._tracker_set_shape(*self.bottom_scope_shape)
+        self._stage_writer_set_shape(*self.bottom_scope_shape)
+        self._stage_displayer_set_shape(*self.bottom_scope_shape)
+        self._stage_writer_set_saving_mode(self.mode_dict["bottom_scope_saving_mode"])
+        self._tracker_set_crop_size(self.mode_dict["tracker_crop_size"])
+        self._tracker_set_feat_size(self.mode_dict["tracker_feature_size"])
+        self._tracker_set_camera_number(self.mode_dict["tracker_camera_source"])
+        self.exposure, self.rate = self.mode_dict["bottom_scope_exposure_rate"]
+        self._flir_camera_set_exposure(self.exposure, self.rate)
+        self._tracker_set_rate(self.rate)
+        self._zaber_set_limit_xy(self.mode_dict["stage_xy_limit"])
+        self.max_xy_velocities = self.mode_dict["stage_max_velocities"]
+        self._flir_camera_start()
         print("mode "+ str(mode) + " is set.")
 
 
     def start(self):
-        self._camera_start()
+        self._zyla_camera_start()
         self._writer_start()
+        self._stage_writer_start()
         self._data_hub_start()
-    #     #important
-        time.sleep(2)
+        time.sleep(2) # Necessary
         self._daq_start()
 
     # def start_runner(self, mode):
@@ -123,22 +147,20 @@ class LambdaHub(Hub):
 
 
     def stop(self):
-        self._camera_stop()
+        self._zyla_camera_stop()
     #     # self._runner_stop()
-    #     # this delay provides all of other devices with enough time
-    #     # to process any images that are already publishsed by the camera
-        time.sleep(2)
+        time.sleep(2) # Necessary
         self._data_hub_stop()
         self._writer_stop()
-    #     # DAQ should stop after the camera,
-        self._daq_stop()
+        self._stage_writer_stop()
+        self._daq_stop() # DAQ should stop after the camera,
 
     def update_status(self):
         self._data_hub_publish_status()
         self._writer_publish_status()
         self._dragonfly_publish_status()
         self._daq_publish_status()
-        self._camera_publish_status()
+        self._zyla_camera_publish_status()
     #     self._runner_publish_status()
     #     self._valve_publish_status()
 
@@ -148,8 +170,14 @@ class LambdaHub(Hub):
         self._writer_shutdown()
         self._data_hub_shutdown()
         self._daq_shutdown()
-        self._camera_shutdown()
-    #     # self._valve_shutdown()
+        self._zyla_camera_shutdown()
+        self._flir_camera_shutdown()
+        self._zaber_shutdown()
+        self._stage_data_hub_shutdown()
+        self._tracker_shutdown()
+        self._stage_writer_shutdown()
+        self._stage_displayer_shutdown()
+    #     self._valve_shutdown()
     #     self._runner_shutdown()
         time.sleep(5)
         self._logger_shutdown()
@@ -228,114 +256,255 @@ class LambdaHub(Hub):
         self.send("daq publish_status")
 
     def _displayer_set_lookup_table(self, lut_low, lut_high):
-        for i in self.cameras:
+        for i in self.zyla_cameras:
             name = "displayer{}".format(i)
             self.send("{} set_lookup_table {} {}".format(name, lut_low, lut_high))
 
     def _displayer_set_shape(self, z, y, x):
-        for i in self.cameras:
+        for i in self.zyla_cameras:
             name = "displayer{}".format(i)
             self.send("{} set_shape {} {} {}".format(name, z, y, x))
 
     def _displayer_shutdown(self):
-        for i in self.cameras:
+        for i in self.zyla_cameras:
             name = "displayer{}".format(i)
             self.send("{} shutdown".format(name))
 
     def _data_hub_set_shape(self, z, y, x):
-        for i in self.cameras:
+        for i in self.zyla_cameras:
             name = "data_hub{}".format(i)
             self.send("{} set_shape {} {} {}".format(name, z, y, x))
 
     def _data_hub_set_timer(self, nvolumes, off_time):
-        for i in self.cameras:
+        for i in self.zyla_cameras:
             name = "data_hub{}".format(i)
             self.send("{} set_timer {} {}".format(name, nvolumes, off_time))
 
     def _data_hub_start(self):
-        for i in self.cameras:
+        for i in self.zyla_cameras:
             name = "data_hub{}".format(i)
             self.send("{} start".format(name))
 
     def _data_hub_stop(self):
-        for i in self.cameras:
+        for i in self.zyla_cameras:
             name = "data_hub{}".format(i)
             self.send("{} stop".format(name))
 
     def _data_hub_shutdown(self):
-        for i in self.cameras:
+        for i in self.zyla_cameras:
             name = "data_hub{}".format(i)
             self.send("{} shutdown".format(name))
 
     def _data_hub_publish_status(self):
-        for i in self.cameras:
+        for i in self.zyla_cameras:
             name = "data_hub{}".format(i)
             self.send("{} publish_status".format(name))
 
     def _writer_set_saving_mode(self, saving_mode):
-        for i in self.cameras:
+        for i in self.zyla_cameras:
             name = "writer{}".format(i)
             self.send("{} set_saving_mode {}".format(name, saving_mode))
 
     def _writer_set_shape(self, z, y, x):
-        for i in self.cameras:
+        for i in self.zyla_cameras:
             name = "writer{}".format(i)
             self.send("{} set_shape {} {} {}".format(name, z, y, x))
 
     def _writer_start(self):
-        for i in self.cameras:
+        for i in self.zyla_cameras:
             name = "writer{}".format(i)
             self.send("{} start".format(name))
 
     def _writer_stop(self):
-        for i in self.cameras:
+        for i in self.zyla_cameras:
             name = "writer{}".format(i)
             self.send("{} stop".format(name))
 
     def _writer_shutdown(self):
-        for i in self.cameras:
+        for i in self.zyla_cameras:
             name = "writer{}".format(i)
             self.send("{} shutdown".format(name))
 
     def _writer_publish_status(self):
-        for i in self.cameras:
+        for i in self.zyla_cameras:
             name = "writer{}".format(i)
             self.send("{} publish_status".format(name))
 
-    def _camera_set_stack_size(self, stack_size):
-        for i in self.cameras:
+    def _zyla_camera_set_stack_size(self, stack_size):
+        for i in self.zyla_cameras:
             name = "ZylaCamera{}".format(i)
             self.send("{} set_stack_size {}".format(name, stack_size))
 
-    def _camera_set_shape(self, z, y, x):
-        for i in self.cameras:
+    def _zyla_camera_set_shape(self, z, y, x):
+        for i in self.zyla_cameras:
             name = "ZylaCamera{}".format(i)
             self.send("{} set_shape {} {} {}".format(name, z, y, x))
 
-    def _camera_set_trigger_mode(self, trigger_mode):
-        for i in self.cameras:
+    def _zyla_camera_set_trigger_mode(self, trigger_mode):
+        for i in self.zyla_cameras:
             name = "ZylaCamera{}".format(i)
             self.send("{} set_trigger_mode {}".format(name, trigger_mode))
 
-    def _camera_publish_status(self):
-        for i in self.cameras:
+    def _zyla_camera_publish_status(self):
+        for i in self.zyla_cameras:
             name = "ZylaCamera{}".format(i)
             self.send(name + " publish_status")
 
-    def _camera_start(self):
-        for i in self.cameras:
+    def _zyla_camera_start(self):
+        for i in self.zyla_cameras:
             name = "ZylaCamera{}".format(i)
             self.send(name + " start")
 
-    def _camera_stop(self):
-        for i in self.cameras:
+    def _zyla_camera_stop(self):
+        for i in self.zyla_cameras:
             name = "ZylaCamera{}".format(i)
             self.send(name + " stop")
 
-    def _camera_shutdown(self):
-        for i in self.cameras:
+    def _zyla_camera_shutdown(self):
+        for i in self.zyla_cameras:
             name = "ZylaCamera{}".format(i)
             self.send(name + " shutdown")
+
+    def _flir_camera_start(self):
+        for i in self.flir_cameras:
+            name = "FlirCamera{}".format(i)
+            self.send(name + " start")
+
+    def _flir_camera_stop(self):
+        for i in self.flir_cameras:
+            name = "FlirCamera{}".format(i)
+            self.send(name + " stop")
+
+    def _flir_camera_shutdown(self):
+        for i in self.flir_cameras:
+            name = "FlirCamera{}".format(i)
+            self.send(name + " shutdown")
+
+    def _flir_camera_set_exposure(self, exposure, rate):
+        for i in self.flir_cameras:
+            name = "FlirCamera{}".format(i)
+            self.send(name + " set_exposure {} {}".format(exposure, rate))
+
+    def _flir_camera_set_height(self, height):
+        for i in self.flir_cameras:
+            name = "FlirCamera{}".format(i)
+            self.send(name + " set_height {}".format(height))
+
+    def _flir_camera_set_width(self, width):
+        for i in self.flir_cameras:
+            name = "FlirCamera{}".format(i)
+            self.send(name + " set_width {}".format(width))
+
+    def _zaber_clear_warnings(self):
+        self.send("zaber clear_warnings")
+
+    def _zaber_set_limit_xy(self, limit):
+        self.send("zaber set_limit_xy {}".format(limit))
+
+    def _zaber_set_max_velocities(self, max_vel_xy, max_vel_z):
+        self.send("zaber set_max_velocities {} {}".format(max_vel_xy, max_vel_z))
+
+    def _zaber_print_pos(self):
+        self.send("zaber print_pos")
+
+    def _zaber_home_z(self):
+        self.send("zaber home_z")
+
+    def _zaber_update_position(self):
+        self.send("zaber update_position")
+
+    def _zaber_stop_z(self):
+        self.send("zaber stop_z")
+
+    def _zaber_stop_xy(self):
+        self.send("zaber stop_xy")
+
+    def _zaber_shutdown(self):
+        self.send("zaber shutdown")
+
+    def _stage_data_hub_set_shape(self, z, y, x):
+        for i in self.flir_cameras:
+            name = "stage_data_hub{}".format(i)
+            self.send(name + " set_shape {} {} {}".format(z, y, x))
+
+    def _stage_data_hub_shutdown(self):
+        for i in self.flir_cameras:
+            name = "stage_data_hub{}".format(i)
+            self.send(name + " shutdown")
+
+    def _tracker_set_rate(self, rate):
+        self.send("tracker set_rate {}".format(rate))
+
+    def _tracker_set_camera_number(self, camera_number):
+        self.send("tracker set_camera_number {}".format(camera_number))
+
+    def _tracker_set_shape(self, z, y, x):
+        self.send("tracker set_shape {} {} {}".format(z, y, x))
+
+    def _tracker_set_feat_size(self, feat_size):
+        self.send("tracker set_feat_size {}".format(feat_size))
+
+    def _tracker_set_crop_size(self, crop_size):
+        self.send("tracker set_crop_size {}".format(crop_size))
+
+    def _tracker_start(self):
+        self.send("tracker start")
+
+    def _tracker_stop(self):
+        self.send("tracker stop")
+
+    def _tracker_shutdown(self):
+        self.send("tracker shutdown")
+
+    def _stage_writer_set_saving_mode(self, saving_mode):
+        for i in self.flir_cameras:
+            name = "stage_writer{}".format(i)
+            self.send("{} set_saving_mode {}".format(name, saving_mode))
+
+    def _stage_writer_set_shape(self, z, y, x):
+        for i in self.flir_cameras:
+            name = "stage_writer{}".format(i)
+            self.send("{} set_shape {} {} {}".format(name, z, y, x))
+
+    def _stage_writer_start(self):
+        for i in self.flir_cameras:
+            name = "stage_writer{}".format(i)
+            self.send("{} start".format(name))
+
+    def _stage_writer_stop(self):
+        for i in self.flir_cameras:
+            name = "stage_writer{}".format(i)
+            self.send("{} stop".format(name))
+
+    def _stage_writer_shutdown(self):
+        for i in self.flir_cameras:
+            name = "stage_writer{}".format(i)
+            self.send("{} shutdown".format(name))
+
+    def _stage_writer_publish_status(self):
+        for i in self.flir_cameras:
+            name = "stage_writer{}".format(i)
+            self.send("{} publish_status".format(name))
+
+    def _stage_displayer_set_lookup_table(self, lut_low, lut_high):
+        for i in self.flir_cameras:
+            name = "stage_displayer{}".format(i)
+            self.send("{} set_lookup_table {} {}".format(name, lut_low, lut_high))
+        self.send("tracker_displayer set_lookup_table {} {}".format(lut_low, lut_high))
+
+    def _stage_displayer_set_shape(self, z, y, x):
+        for i in self.flir_cameras:
+            name = "stage_displayer{}".format(i)
+            self.send("{} set_shape {} {} {}".format(name, z, y, x))
+        self.send("tracker_displayer set_shape {} {} {}".format(z, y, x))
+
+    def _stage_displayer_shutdown(self):
+        for i in self.flir_cameras:
+            name = "stage_displayer{}".format(i)
+            self.send("{} shutdown".format(name))
+        self.send("tracker_displayer shutdown")
+
+
 
 
 ######  These send the commands to the runner.
@@ -371,16 +540,6 @@ class LambdaHub(Hub):
 
 
 
-######  These send the commands to the laser.
-
-    # def _laser_set_nd_filters(self, laser_index, number_of_nd_filters):
-    #     self.send("laser set_nd_filter {} {}".format(laser_index, number_of_nd_filters))
-
-    # def _laser_shutdown(self):
-    #     self.send("laser shutdown")
-
-
-
 ######  These send the commands to the valve.
 
     # def _valve_shutdown(self):
@@ -403,7 +562,8 @@ def main():
         server=int(arguments["--server"]),
         mode_directory=arguments["--mode_directory"],
         fmt=arguments["--format"],
-        camera=arguments["--camera"])
+        zyla_camera=arguments["--zyla_camera"],
+        flir_camera=arguments["--flir_camera"])
 
     scope.run()
 

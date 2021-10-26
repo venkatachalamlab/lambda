@@ -55,20 +55,12 @@ class TrackerDevice():
         (self.dtype, _, self.shape) = array_props_from_string(fmt)
         self.out = np.zeros(self.shape, dtype=self.dtype)
 
-        self.x_center = self.shape[2] // 2
-        self.y_center = self.shape[1] // 2
-
-        self.Kp = 15.0
-        self.Ki = 0.0
-        self.Kd = 0.0
-        self.index = 1
-        self.dt = 0.025
-
         self.tracker = ObjectDetector(self.shape)
+        self.pid = PIDController(15.0, 0.0, 0.0,
+                                 self.shape[2] // 2, self.shape[1] // 2,
+                                 1, 0.025)
 
-        self.pid = PIDController(self.Kp, self.Ki, self.Kd,
-                                 self.x_center, self.y_center,
-                                 self.index, self.dt)
+        self.camera_number = 1
 
         self.running = 1
         self.tracking = 0
@@ -120,7 +112,7 @@ class TrackerDevice():
         img = self.tracker.out.copy()
 
         cv2.rectangle(img, p1, p2, (255,255,255), 2, 1)
-        cv2.circle(img, (self.x_center, self.y_center), 2, (255, 255, 255), 1)
+        cv2.circle(img, (self.shape[2] // 2, self.shape[1] // 2), 2, (255, 255, 255), 1)
 
         self.out[0, ...] = img
         self.data_publisher.send(self.out)
@@ -132,17 +124,16 @@ class TrackerDevice():
                 "zaber xy_vel {} {}".format(vel[0], vel[1]))
             self.command_publisher.send("zaber update_position")
 
-    def set_pid_dt(self, dt):
-        self.dt = dt
-        self.pid = PIDController(self.Kp, self.Ki, self.Kd,
-                                 self.x_center, self.y_center,
-                                 self.index, self.dt)
+    def set_rate(self, rate):
+        self.pid.set_rate(rate)
 
-    def set_tracker_source(self, camera_number):
+    def set_camera_number(self, camera_number):
+        self.camera_number = camera_number
+        self.pid.set_camera_number(self.camera_number)
         self.poller.unregister(self.data_subscriber.socket)
         self.data_subscriber.socket.close()
 
-        port = self.data_in[1] + camera_number - 1
+        port = self.data_in[1] + self.camera_number - 1
 
         self.data_subscriber = TimestampedSubscriber(
             host=self.data_in[0],
@@ -153,31 +144,45 @@ class TrackerDevice():
 
         self.poller.register(self.data_subscriber.socket, zmq.POLLIN)
 
-        self.index = camera_number - 1
-        self.pid = PIDController(self.Kp, self.Ki, self.Kd,
-                                 self.x_center, self.y_center,
-                                 self.index, self.dt)
-
     def set_shape(self, z, y ,x):
         self.poller.unregister(self.data_subscriber.socket)
         self.data_subscriber.socket.close()
         self.data_publisher.socket.close()
 
         self.shape = (z, y, x)
-        self.tracker.set_shape(self.shape)
+        self.tracker.set_shape(z, y, x)
         self.out = np.zeros(self.shape, dtype=self.dtype)
 
-        self.x_center = self.shape[2] // 2
-        self.y_center = self.shape[1] // 2
-        self.pid = PIDController(self.Kp, self.Ki, self.Kd,
-                                 self.x_center, self.y_center,
-                                 self.index, self.dt)
+        self.pid.set_center(self.shape[2] // 2, self.shape[1] // 2)
+
+        self.data_publisher = TimestampedPublisher(
+            host=self.data_out[0],
+            port=self.data_out[1],
+            bound=self.data_out[2],
+            shape=self.shape,
+            datatype=self.dtype)
+
+        port = self.data_in[1] + self.camera_number - 1
+        self.data_subscriber = TimestampedSubscriber(
+            host=self.data_in[0],
+            port=port,
+            bound=self.data_in[2],
+            shape=self.shape,
+            datatype=self.dtype)
+
+        self.poller.register(self.data_subscriber.socket, zmq.POLLIN)
+
+    def set_feat_size(self, feat_size):
+        self.tracker.set_feat_size(feat_size)
+
+    def set_crop_size(self, crop_size):
+        self.tracker.crop_size(crop_size)
 
     def stop(self):
         """Stops the subscription to data port."""
         if self.tracking:
             self.tracking = 0
-            self.command_publisher.send("zaber xy_vel {} {}".format(0, 0))
+            self.command_publisher.send("zaber stop_xy")
 
     def start(self):
         """Start subscribing to image data."""
@@ -201,7 +206,7 @@ class TrackerDevice():
             if self.command_subscriber.socket in sockets:
                 self.command_subscriber.handle()
 
-            if self.data_subscriber.socket in sockets:
+            elif self.data_subscriber.socket in sockets:
                 self.process()
 
 def main():

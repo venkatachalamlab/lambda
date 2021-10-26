@@ -120,14 +120,13 @@ class DataHub():
             if self.command_subscriber.socket in sockets:
                 self.command_subscriber.handle()
 
-            if self.data_subscriber.socket in sockets:
+            elif self.data_subscriber.socket in sockets:
                 self.process()
 
     def process(self):
         """This subscribes to a volume and publishes that volume to a port"""
         vol = self.data_subscriber.get_last()
         self.data_publisher.send(vol)
-
 
 def main():
     """CLI entry point."""

@@ -199,10 +199,6 @@ class ZaberController():
         self.position["X"], self.position["Y"] = self.get_pos_xy()
         self.status_publisher.send("logger "+ json.dumps({"position": self.position}, default=int))
 
-    def set_converter_idx(self, idx):
-        """Sets the converter idx used to get correct x,y coordinates"""
-        self.converter_idx = idx
-
     def stop_z(self):
         """Stops z axis"""
         self.execute(self.serial_obj_z, "stop")
