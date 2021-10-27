@@ -186,6 +186,9 @@ class LambdaHub(Hub):
     def _logger_shutdown(self):
         self.send("logger shutdown")
 
+
+
+
     def _dragonfly_shutdown(self):
         self.send("dragonfly shutdown")
 
@@ -215,6 +218,9 @@ class LambdaHub(Hub):
 
     def _dragonfly_set_standby(self, mode):
         self.send("dragonfly set_standby {}".format(mode))
+
+
+
 
     def _daq_set_exposure_time(self, exposure_time):
         self.send("daq set_exposure_time {}".format(exposure_time))
@@ -255,20 +261,44 @@ class LambdaHub(Hub):
     def _daq_publish_status(self):
         self.send("daq publish_status")
 
+
+
+
     def _displayer_set_lookup_table(self, lut_low, lut_high):
         for i in self.zyla_cameras:
-            name = "displayer{}".format(i)
+            name = "top_displayer{}".format(i)
             self.send("{} set_lookup_table {} {}".format(name, lut_low, lut_high))
 
     def _displayer_set_shape(self, z, y, x):
         for i in self.zyla_cameras:
-            name = "displayer{}".format(i)
+            name = "top_displayer{}".format(i)
             self.send("{} set_shape {} {} {}".format(name, z, y, x))
 
     def _displayer_shutdown(self):
         for i in self.zyla_cameras:
-            name = "displayer{}".format(i)
+            name = "top_displayer{}".format(i)
             self.send("{} shutdown".format(name))
+
+    def _stage_displayer_set_lookup_table(self, lut_low, lut_high):
+        for i in self.flir_cameras:
+            name = "bottom_displayer{}".format(i)
+            self.send("{} set_lookup_table {} {}".format(name, lut_low, lut_high))
+        self.send("tracking_displayer set_lookup_table {} {}".format(lut_low, lut_high))
+
+    def _stage_displayer_set_shape(self, z, y, x):
+        for i in self.flir_cameras:
+            name = "bottom_displayer{}".format(i)
+            self.send("{} set_shape {} {} {}".format(name, z, y, x))
+        self.send("tracking_displayer set_shape {} {} {}".format(z, y, x))
+
+    def _stage_displayer_shutdown(self):
+        for i in self.flir_cameras:
+            name = "bottom_displayer{}".format(i)
+            self.send("{} shutdown".format(name))
+        self.send("tracking_displayer shutdown")
+
+
+
 
     def _data_hub_set_shape(self, z, y, x):
         for i in self.zyla_cameras:
@@ -300,6 +330,19 @@ class LambdaHub(Hub):
             name = "data_hub{}".format(i)
             self.send("{} publish_status".format(name))
 
+    def _stage_data_hub_set_shape(self, z, y, x):
+        for i in self.flir_cameras:
+            name = "stage_data_hub{}".format(i)
+            self.send(name + " set_shape {} {} {}".format(z, y, x))
+
+    def _stage_data_hub_shutdown(self):
+        for i in self.flir_cameras:
+            name = "stage_data_hub{}".format(i)
+            self.send(name + " shutdown")
+
+
+
+
     def _writer_set_saving_mode(self, saving_mode):
         for i in self.zyla_cameras:
             name = "writer{}".format(i)
@@ -329,6 +372,39 @@ class LambdaHub(Hub):
         for i in self.zyla_cameras:
             name = "writer{}".format(i)
             self.send("{} publish_status".format(name))
+
+    def _stage_writer_set_saving_mode(self, saving_mode):
+        for i in self.flir_cameras:
+            name = "stage_writer{}".format(i)
+            self.send("{} set_saving_mode {}".format(name, saving_mode))
+
+    def _stage_writer_set_shape(self, z, y, x):
+        for i in self.flir_cameras:
+            name = "stage_writer{}".format(i)
+            self.send("{} set_shape {} {} {}".format(name, z, y, x))
+
+    def _stage_writer_start(self):
+        for i in self.flir_cameras:
+            name = "stage_writer{}".format(i)
+            self.send("{} start".format(name))
+
+    def _stage_writer_stop(self):
+        for i in self.flir_cameras:
+            name = "stage_writer{}".format(i)
+            self.send("{} stop".format(name))
+
+    def _stage_writer_shutdown(self):
+        for i in self.flir_cameras:
+            name = "stage_writer{}".format(i)
+            self.send("{} shutdown".format(name))
+
+    def _stage_writer_publish_status(self):
+        for i in self.flir_cameras:
+            name = "stage_writer{}".format(i)
+            self.send("{} publish_status".format(name))
+
+
+
 
     def _zyla_camera_set_stack_size(self, stack_size):
         for i in self.zyla_cameras:
@@ -395,6 +471,9 @@ class LambdaHub(Hub):
             name = "FlirCamera{}".format(i)
             self.send(name + " set_width {}".format(width))
 
+
+
+
     def _zaber_clear_warnings(self):
         self.send("zaber clear_warnings")
 
@@ -422,15 +501,8 @@ class LambdaHub(Hub):
     def _zaber_shutdown(self):
         self.send("zaber shutdown")
 
-    def _stage_data_hub_set_shape(self, z, y, x):
-        for i in self.flir_cameras:
-            name = "stage_data_hub{}".format(i)
-            self.send(name + " set_shape {} {} {}".format(z, y, x))
 
-    def _stage_data_hub_shutdown(self):
-        for i in self.flir_cameras:
-            name = "stage_data_hub{}".format(i)
-            self.send(name + " shutdown")
+
 
     def _tracker_set_rate(self, rate):
         self.send("tracker set_rate {}".format(rate))
@@ -456,53 +528,9 @@ class LambdaHub(Hub):
     def _tracker_shutdown(self):
         self.send("tracker shutdown")
 
-    def _stage_writer_set_saving_mode(self, saving_mode):
-        for i in self.flir_cameras:
-            name = "stage_writer{}".format(i)
-            self.send("{} set_saving_mode {}".format(name, saving_mode))
 
-    def _stage_writer_set_shape(self, z, y, x):
-        for i in self.flir_cameras:
-            name = "stage_writer{}".format(i)
-            self.send("{} set_shape {} {} {}".format(name, z, y, x))
 
-    def _stage_writer_start(self):
-        for i in self.flir_cameras:
-            name = "stage_writer{}".format(i)
-            self.send("{} start".format(name))
 
-    def _stage_writer_stop(self):
-        for i in self.flir_cameras:
-            name = "stage_writer{}".format(i)
-            self.send("{} stop".format(name))
-
-    def _stage_writer_shutdown(self):
-        for i in self.flir_cameras:
-            name = "stage_writer{}".format(i)
-            self.send("{} shutdown".format(name))
-
-    def _stage_writer_publish_status(self):
-        for i in self.flir_cameras:
-            name = "stage_writer{}".format(i)
-            self.send("{} publish_status".format(name))
-
-    def _stage_displayer_set_lookup_table(self, lut_low, lut_high):
-        for i in self.flir_cameras:
-            name = "stage_displayer{}".format(i)
-            self.send("{} set_lookup_table {} {}".format(name, lut_low, lut_high))
-        self.send("tracker_displayer set_lookup_table {} {}".format(lut_low, lut_high))
-
-    def _stage_displayer_set_shape(self, z, y, x):
-        for i in self.flir_cameras:
-            name = "stage_displayer{}".format(i)
-            self.send("{} set_shape {} {} {}".format(name, z, y, x))
-        self.send("tracker_displayer set_shape {} {} {}".format(z, y, x))
-
-    def _stage_displayer_shutdown(self):
-        for i in self.flir_cameras:
-            name = "stage_displayer{}".format(i)
-            self.send("{} shutdown".format(name))
-        self.send("tracker_displayer shutdown")
 
 
 

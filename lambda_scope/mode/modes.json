@@ -1,7 +1,7 @@
 {
     "widefield": {
         "saving_mode": 0,
-        "camera_trigger_mode": 1,
+        "zyla_camera_trigger_mode": 1,
         "dragonfly_imaging_mode": 1,
         "shape": [1, 512, 512],
         "voltage_step": 0.1,
@@ -12,7 +12,7 @@
         "filter2": 4,
         "total_volumes": 1,
         "rest_time": 0,
-        "bottom_scope_shape": [1, 512, 512],
+        "bottom_scope_shape": [1, 384, 384],
         "bottom_scope_saving_mode": 0,
         "tracker_crop_size": 300,
         "tracker_feature_size": 2500,
@@ -23,7 +23,7 @@
     },
     "confocal": {
         "saving_mode": 1,
-        "camera_trigger_mode": 2,
+        "zyla_camera_trigger_mode": 2,
         "dragonfly_imaging_mode": 2,
         "shape": [20, 256, 512],
         "voltage_step": 0.15,
