@@ -77,12 +77,12 @@ def execute(job, fmt: str, zyla_camera: str):
     #                   "--outbound=L" + ibound,
     #                   "--port=" + dragonfly_usb_port]))
 
-    job.append(Popen(["lambda_acquisition_board",
-                      "--commands_in=L" + obound,
-                      "--status_out=L" + ibound,
-                      "--format=" + fmt,
-                      "--serial_num_daq1=" + serial_num_las_daq,
-                      "--serial_num_daq0=" + serial_num_cam_daq]))
+    # job.append(Popen(["lambda_acquisition_board",
+    #                   "--commands_in=L" + obound,
+    #                   "--status_out=L" + ibound,
+    #                   "--format=" + fmt,
+    #                   "--serial_num_daq1=" + serial_num_las_daq,
+    #                   "--serial_num_daq0=" + serial_num_cam_daq]))
 
     # job.append(Popen(["experiment_runner_v2",
     #                   "--inbound=L" + forwarder_out,
@@ -91,11 +91,11 @@ def execute(job, fmt: str, zyla_camera: str):
 
     for i, camera_number in enumerate(zyla_cameras):
 
-        job.append(Popen(["lambda_displayer",
-                          "--inbound=L" + str(data_stamped + i),
-                          "--format=" + fmt,
-                          "--commands=L" + obound,
-                          "--name=top_displayer"+ str(camera_number)]))
+        # job.append(Popen(["lambda_displayer",
+        #                   "--inbound=L" + str(data_stamped + i),
+        #                   "--format=" + fmt,
+        #                   "--commands=L" + obound,
+        #                   "--name=top_displayer"+ str(camera_number)]))
 
         job.append(Popen(["lambda_data_hub",
                           "--data_in=L" + str(data_cam + i),
