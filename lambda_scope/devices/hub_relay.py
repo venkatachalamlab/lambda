@@ -89,7 +89,7 @@ class LambdaHub(Hub):
         self._data_hub_set_shape(*self.shape)
         self._displayer_set_shape(*self.shape)
         self._daq_set_stack_size(self.shape[0])
-        self._daq_set_voltage_step(self.mode_dict["voltage_step"])
+        self._daq_set_voltage_step(self.mode_dict["z_resolution_in_um"])
         self._daq_set_exposure_time(self.mode_dict["exposure_time"])
         self._dragonfly_set_filter(1, self.mode_dict["filter1"])
         self._dragonfly_set_filter(2, self.mode_dict["filter2"])
@@ -225,8 +225,8 @@ class LambdaHub(Hub):
     def _daq_set_las_continuous(self, las_continuous):
         self.send("daq set_laser_continuous {}".format(las_continuous))
 
-    def _daq_set_voltage_step(self, voltage_step):
-        self.send("daq set_voltage_step {}".format(voltage_step))
+    def _daq_set_voltage_step(self, z_resolution_in_um):
+        self.send("daq set_voltage_step {}".format(float(z_resolution_in_um) / 10))
 
     def _daq_set_laser(self, idx, power, position):
         self.send("daq set_laser {} {} {}".format(idx, power, position))
