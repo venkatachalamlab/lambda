@@ -930,11 +930,12 @@ class LambdaApp():
 
         self.window.mainloop()
 
-    def load_mode(self, mode_name):
-        mode_file = os.path.join(self.mode_directory , "modes.json")
-        with open(mode_file, 'r') as f:
-            modes_dict = json.load(f)
-            self.mode_dict = modes_dict[mode]
+    # def load_mode(self, mode_name):
+    #     os.path.dirname(lambda_scope.__file__)
+    #     mode_file = os.path.join(self.mode_directory , "modes.json")
+    #     with open(mode_file, 'r') as f:
+    #         modes_dict = json.load(f)
+    #         self.mode_dict = modes_dict[mode]
 
 
     def update_mode(self):

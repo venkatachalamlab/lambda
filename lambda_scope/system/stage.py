@@ -16,7 +16,7 @@ Options:
     --format=UINT8_ZYX_22_512_1024      Image format.
                                             [default: UINT8_ZYX_1_512_512]
     --camera=<number>                   1 for camera1, 2 for camera2 and * to run both.
-                                            [default: *]
+                                            [default: 1]
 """
 
 import time
@@ -83,7 +83,7 @@ def execute(job, fmt: str, camera: str):
                           "--inbound=L" + tracker_out,
                           "--format=" + fmt,
                           "--commands=" + forwarder_out,
-                          "--name=tracker_displayer"]))
+                          "--name=tracking_displayer"]))
 
     # job.append(Popen(["experiment_runner_v2",
     #                   "--inbound=L" + forwarder_out,
@@ -96,7 +96,7 @@ def execute(job, fmt: str, camera: str):
                           "--inbound=L" + str(data_stamped + i),
                           "--format=" + fmt,
                           "--commands=" + forwarder_out,
-                          "--name=stage_displayer"+ str(camera_number)]))
+                          "--name=bottom_displayer"+ str(camera_number)]))
 
         job.append(Popen(["lambda_stage_data_hub",
                           "--data_in=L" + str(data_camera_out + i),
@@ -118,7 +118,7 @@ def execute(job, fmt: str, camera: str):
                           "--serial_number=" + serial_number[int(camera_number)-1],
                           "--commands=" + forwarder_out,
                           "--name=FlirCamera"+str(camera_number),
-                          "--commands=" + forwarder_in,
+                          "--status=" + forwarder_in,
                           "--data=*:" + str(data_camera_out + i),
                           "--width=" + str(shape[2]),
                           "--height=" + str(shape[1])]))

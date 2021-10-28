@@ -87,6 +87,7 @@ class DataHub():
         self.shape = (z, y, x)
         self.poller.unregister(self.data_subscriber.socket)
 
+        self.data_publisher.context.term()
         self.data_publisher.socket.close()
         self.data_subscriber.socket.close()
 

@@ -89,6 +89,10 @@ void SpinnakerCamera::set_width(void)
 	{
 		Spinnaker::GenApi::INodeMap & nodeMap = ptrCamera->GetNodeMap();
 		Spinnaker::GenApi::CIntegerPtr ptrWidth = nodeMap.GetNode("Width");
+		Spinnaker::GenApi::CIntegerPtr ptrOffsetX = nodeMap.GetNode("OffsetX");
+		Spinnaker::GenApi::CIntegerPtr ptrOffsetY = nodeMap.GetNode("OffsetY");
+		ptrOffsetX->SetValue(0);
+		ptrOffsetY->SetValue(0);
 		ptrWidth->SetValue(Width);
 		Width = ptrWidth->GetValue();
 		DEBUG("FlirCamera #" << SerialNumber << ": Width is " << Width);
@@ -105,6 +109,10 @@ void SpinnakerCamera::set_height(void)
 	{
 		Spinnaker::GenApi::INodeMap & nodeMap = ptrCamera->GetNodeMap();
 		Spinnaker::GenApi::CIntegerPtr ptrHeight = nodeMap.GetNode("Height");
+		Spinnaker::GenApi::CIntegerPtr ptrOffsetX = nodeMap.GetNode("OffsetX");
+		Spinnaker::GenApi::CIntegerPtr ptrOffsetY = nodeMap.GetNode("OffsetY");
+		ptrOffsetX->SetValue(0);
+		ptrOffsetY->SetValue(0);
 		ptrHeight->SetValue(Height);
 		Height = ptrHeight->GetValue();
 		DEBUG("FlirCamera #" << SerialNumber << ": Height is " << Height);
