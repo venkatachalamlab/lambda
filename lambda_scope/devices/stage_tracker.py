@@ -176,7 +176,7 @@ class TrackerDevice():
         self.tracker.set_feat_size(feat_size)
 
     def set_crop_size(self, crop_size):
-        self.tracker.crop_size(crop_size)
+        self.tracker.set_crop_size(crop_size)
 
     def stop(self):
         """Stops the subscription to data port."""
