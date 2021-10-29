@@ -6,18 +6,23 @@
 import os
 import json
 import tkinter
+import tkinter.messagebox
+
+import lambda_scope
 
 class LambdaApp():
     def __init__(self):
 
         self.window = tkinter.Tk()
 
-        self.window_width= self.window.winfo_screenwidth() 
+        self.window_width= self.window.winfo_screenwidth()
         self.window_height= self.window.winfo_screenheight()
         self.x_spacing = 5
-        self.y_spacing = 5
+        self.y_spacing = 8
         self.window.geometry("{}x{}".format(self.window_width, self.window_height))
         self.window.title("LAMBDA")
+        self.mode_filename = os.path.join(os.path.dirname(lambda_scope.__file__),
+                                          "mode", "modes.json")
 
         self.mode = {}
 
@@ -62,6 +67,7 @@ class LambdaApp():
         self.top_microscope_saving_mode = tkinter.IntVar()
         self.laser_output_repeat = tkinter.IntVar()
         self.bot_microscope_saving_mode = tkinter.IntVar()
+        self.mode_name_to_load = tkinter.StringVar()
 
         self.laser_405_vol_1.set("0.0")
         self.laser_405_vol_2.set("0.0")
@@ -288,6 +294,20 @@ class LambdaApp():
             textvariable=self.stage_max_velocity_z,
             width=7
         )
+        self.current_mode_name = tkinter.Entry(
+            self.window,
+            width=15
+        )
+        self.load_button = tkinter.Menubutton(
+            self.window, text="Load", relief='raised'
+        )
+        self.load_button.menu = tkinter.Menu(self.load_button, tearoff = 0)
+        self.load_button["menu"] = self.load_button.menu
+
+        self.save_button = tkinter.Button(
+            self.window, text="Save",
+            command=self.save
+        )
         self.zyla_camera_trigger_mode_radio_button_internal_trigger = tkinter.Radiobutton(
             self.window, text="Internal Trigger",
             variable=self.zyla_camera_trigger_mode, value=1,
@@ -331,9 +351,10 @@ class LambdaApp():
             variable=self.laser_output_repeat,
             command=self.update_mode
         )
-        self.set_laser_power_values = tkinter.Button(
-            self.window, text="Set Laser Power Values",
-            command=self.update_mode 
+        self.laser_power_values = tkinter.Label(
+            self.window,
+            text="Laser Power Values",
+            relief='ridge'
         )
         self.volume_1 = tkinter.Label(
             self.window,
@@ -369,7 +390,8 @@ class LambdaApp():
         )
         self.dataset_shape = tkinter.Label(
             self.window,
-            text = "Dataset Shape"
+            text = "Dataset Shape",
+            relief='ridge'
         )
         self.bottom = tkinter.Label(
             self.window,
@@ -393,7 +415,8 @@ class LambdaApp():
         )
         self.bottom_microscope = tkinter.Label(
             self.window,
-            text = "Bottom Microscope"
+            text = "Bottom Microscope",
+            relief='ridge'
         )
         self.tracker_source_cam_num = tkinter.Label(
             self.window,
@@ -433,7 +456,8 @@ class LambdaApp():
         )
         self.top_microscope = tkinter.Label(
             self.window,
-            text = "Top Microscope"
+            text = "Top Microscope",
+            relief='ridge'
         )
         self.total_volumes = tkinter.Label(
             self.window,
@@ -445,7 +469,8 @@ class LambdaApp():
         )
         self.stage_parameters = tkinter.Label(
             self.window,
-            text = "Stage Parameters"
+            text = "Stage Parameters",
+            relief='ridge'
         )
         self.travel_limit_xy = tkinter.Label(
             self.window,
@@ -461,103 +486,191 @@ class LambdaApp():
         )
         self.zyla_trigger = tkinter.Label(
             self.window,
-            text = "Zyla Camera Trigger Mode"
+            text = "Zyla Camera Trigger Mode",
+            relief='ridge'
         )
         self.dragonfly_pinhole = tkinter.Label(
             self.window,
-            text = "Spinning Disk Pinhole"
+            text = "Spinning Disk Pinhole",
+            relief='ridge'
         )
         self.check_boxes = tkinter.Label(
             self.window,
-            text = "Check Boxes"
+            text = "Check Boxes",
+            relief='ridge'
+        )
+        self.mode_save_load = tkinter.Label(
+            self.window,
+            text = "Save/Load Imaging Modes",
+            relief='ridge'
+        )
+        self.load_predefined_mode = tkinter.Label(
+            self.window,
+            text = "Load a Predefined Mode"
+        )
+        self.save_current_mode_as = tkinter.Label(
+            self.window,
+            text = "Save Current Mode As"
         )
 
+        self.laser_405_vol_1_entry.bind(
+            '<Return>',
+            lambda _: self.update_mode()
+        )
+        self.laser_405_vol_2_entry.bind(
+            '<Return>',
+            lambda _: self.update_mode()
+        )
+        self.laser_405_vol_3_entry.bind(
+            '<Return>',
+            lambda _: self.update_mode()
+        )
+        self.laser_405_vol_4_entry.bind(
+            '<Return>',
+            lambda _: self.update_mode()
+        )
+        self.laser_488_vol_1_entry.bind(
+            '<Return>',
+            lambda _: self.update_mode()
+        )
+        self.laser_488_vol_2_entry.bind(
+            '<Return>',
+            lambda _: self.update_mode()
+        )
+        self.laser_488_vol_3_entry.bind(
+            '<Return>',
+            lambda _: self.update_mode()
+        )
+        self.laser_488_vol_4_entry.bind(
+            '<Return>',
+            lambda _: self.update_mode()
+        )
+        self.laser_561_vol_1_entry.bind(
+            '<Return>',
+            lambda _: self.update_mode()
+        )
+        self.laser_561_vol_2_entry.bind(
+            '<Return>',
+            lambda _: self.update_mode()
+        )
+        self.laser_561_vol_3_entry.bind(
+            '<Return>',
+            lambda _: self.update_mode()
+        )
+        self.laser_561_vol_4_entry.bind(
+            '<Return>',
+            lambda _: self.update_mode()
+        )
+        self.laser_640_vol_1_entry.bind(
+            '<Return>',
+            lambda _: self.update_mode()
+        )
+        self.laser_640_vol_2_entry.bind(
+            '<Return>',
+            lambda _: self.update_mode()
+        )
+        self.laser_640_vol_3_entry.bind(
+            '<Return>',
+            lambda _: self.update_mode()
+        )
+        self.laser_640_vol_4_entry.bind(
+            '<Return>',
+            lambda _: self.update_mode()
+        )
         self.top_microscope_data_shape_z_entry.bind(
-            '<Return>', 
+            '<Return>',
             lambda _: self.update_mode()
         )
         self.top_microscope_data_shape_y_entry.bind(
-            '<Return>', 
+            '<Return>',
             lambda _: self.update_mode()
         )
         self.top_microscope_data_shape_x_entry.bind(
-            '<Return>', 
+            '<Return>',
             lambda _: self.update_mode()
         )
         self.bot_microscope_data_shape_z_entry.bind(
-            '<Return>', 
+            '<Return>',
             lambda _: self.update_mode()
         )
         self.bot_microscope_data_shape_y_entry.bind(
-            '<Return>', 
+            '<Return>',
             lambda _: self.update_mode()
         )
         self.bot_microscope_data_shape_x_entry.bind(
-            '<Return>', 
+            '<Return>',
             lambda _: self.update_mode()
         )
         self.tracker_camera_source_entry.bind(
-            '<Return>', 
+            '<Return>',
             lambda _: self.update_mode()
         )
         self.flir_camera_exposure_entry.bind(
-            '<Return>', 
+            '<Return>',
             lambda _: self.update_mode()
         )
         self.flir_camera_rate_entry.bind(
-            '<Return>', 
+            '<Return>',
             lambda _: self.update_mode()
         )
         self.tracker_feature_size_entry.bind(
-            '<Return>', 
+            '<Return>',
             lambda _: self.update_mode()
         )
         self.tracker_crop_size_entry.bind(
-            '<Return>', 
+            '<Return>',
             lambda _: self.update_mode()
         )
         self.z_resolution_in_um_entry.bind(
-            '<Return>', 
+            '<Return>',
             lambda _: self.update_mode()
         )
         self.zyla_camera_exposure_time_in_ms_entry.bind(
-            '<Return>', 
+            '<Return>',
             lambda _: self.update_mode()
         )
         self.filter1_entry.bind(
-            '<Return>', 
+            '<Return>',
             lambda _: self.update_mode()
         )
         self.filter2_entry.bind(
-            '<Return>', 
+            '<Return>',
             lambda _: self.update_mode()
         )
         self.total_volume_entry.bind(
-            '<Return>', 
+            '<Return>',
             lambda _: self.update_mode()
         )
         self.rest_time_entry.bind(
-            '<Return>', 
+            '<Return>',
             lambda _: self.update_mode()
         )
         self.stage_xy_limit_entry.bind(
-            '<Return>', 
+            '<Return>',
             lambda _: self.update_mode()
         )
         self.stage_max_velocity_xy_entry.bind(
-            '<Return>', 
+            '<Return>',
             lambda _: self.update_mode()
         )
         self.stage_max_velocity_z_entry.bind(
-            '<Return>', 
+            '<Return>',
             lambda _: self.update_mode()
+        )
+        self.current_mode_name.bind(
+            '<Return>',
+            lambda _: self.update_mode()
+        )
+        self.load_button.bind(
+            '<Button-1>',
+            lambda _: self.prepare_load_button()
         )
 
         x1 = self.laser_405nm.winfo_reqwidth()
         x2 = self.volume_1.winfo_reqwidth()
-        y1 = self.set_laser_power_values.winfo_reqheight()
+        y1 = self.laser_power_values.winfo_reqheight()
 
-        self.set_laser_power_values.place(
+        self.laser_power_values.place(
             x = self.x_spacing,
             y = self.y_spacing,
         )
@@ -876,11 +989,11 @@ class LambdaApp():
         self.zyla_camera_trigger_mode_radio_button_internal_trigger.place(
             x = x16,
             y = 2 * self.y_spacing + y1
-        ) 
+        )
         self.zyla_camera_trigger_mode_radio_button_external_trigger.place(
             x = x16,
             y = 3 * self.y_spacing + 2 * y1
-        ) 
+        )
 
         x18 = x16 + x17 + self.x_spacing + 10 * self.x_spacing
         x19 = max(self.dragonfly_pinhole.winfo_reqwidth(),
@@ -928,15 +1041,160 @@ class LambdaApp():
         )
 
 
+        x22 = x20 + x21 + self.x_spacing + 10 * self.x_spacing
+        x23 = max(self.save_current_mode_as.winfo_reqwidth(),
+                  self.load_predefined_mode.winfo_reqwidth())
+        x24 = self.current_mode_name.winfo_reqwidth()
+        _ = max(self.save_button.winfo_reqwidth(),
+                self.load_button.winfo_reqwidth())
+
+        self.mode_save_load.place(
+            x = x22,
+            y = self.y_spacing
+        )
+
+        self.load_predefined_mode.place(
+            x = x22,
+            y = 2 * self.y_spacing + y1
+        )
+        self.save_current_mode_as.place(
+            x = x22,
+            y = 3 * self.y_spacing + 2 * y1
+        )
+        self.current_mode_name.place(
+            x = x22 + x23 + self.x_spacing,
+            y = 3 * self.y_spacing + 2 * y1
+        )
+        self.load_button.place(
+            x = x22 + x23 + self.x_spacing,
+            y = y1 + 2 * self.y_spacing - 4
+        )
+        self.save_button.place(
+            x = x22 + x23 + x24 + 2 * self.x_spacing,
+            y = 3 * self.y_spacing + 2 * y1 - 4
+        )
+
+
         self.window.mainloop()
 
-    # def load_mode(self, mode_name):
-    #     os.path.dirname(lambda_scope.__file__)
-    #     mode_file = os.path.join(self.mode_directory , "modes.json")
-    #     with open(mode_file, 'r') as f:
-    #         modes_dict = json.load(f)
-    #         self.mode_dict = modes_dict[mode]
+    def prepare_load_button(self):
+        menu_len = self.load_button.menu.index(tkinter.END)
+        if menu_len is not None:
+            for _ in range(menu_len+1):
+                self.load_button.menu.delete(0)
 
+        with open(self.mode_filename, 'r') as f:
+            modes_dict = json.load(f)
+        mode_names = modes_dict.keys()
+
+        for name in mode_names:
+            self.load_button.menu.add_radiobutton(
+                label=name,
+                variable=self.mode_name_to_load,
+                value=name,
+                command=self.load)
+
+
+    def save(self):
+        self.update_mode()
+        mode_name = self.current_mode_name.get()
+        with open(self.mode_filename, 'r') as f:
+            modes_dict = json.load(f)
+        mode_names = modes_dict.keys()
+
+        if mode_name == '':
+            tkinter.messagebox.showerror('Error', 'Mode name is missing!')
+
+        elif mode_name in mode_names:
+            is_permitted = tkinter.messagebox.askokcancel(
+                'Overwrite Permission',
+                'A mode with the same name exists, overwrite?')
+            if is_permitted:
+                modes_dict[mode_name] = self.mode
+                with open(self.mode_filename, 'w') as outfile:
+                    json.dump(modes_dict, outfile, indent=4)
+                tkinter.messagebox.showinfo(
+                    'Successful Modification',
+                    'Mode {} is successfully modified!'.format(mode_name))
+        else:
+            is_confirmed = tkinter.messagebox.askyesno(
+                title="Saving Confirmation",
+                message='Do you want to save current parameters as a new mode named {}?'.format(mode_name))
+            if is_confirmed:
+                modes_dict[mode_name] = self.mode
+                with open(self.mode_filename, 'w') as outfile:
+                    json.dump(modes_dict, outfile, indent=4)
+                tkinter.messagebox.showinfo('Successful Save', 'Mode {} is successfully saved!'.format(mode_name))
+
+
+    def load(self):
+        mode_name = self.mode_name_to_load.get()
+        with open(self.mode_filename, 'r') as f:
+            modes_dict = json.load(f)
+        mode = modes_dict[mode_name]
+
+        self.top_microscope_saving_mode.set(mode["top_microscope_saving_mode"])
+        self.zyla_camera_trigger_mode.set(mode["zyla_camera_trigger_mode"])
+        self.dragonfly_imaging_mode.set(mode["dragonfly_imaging_mode"])
+        self.top_microscope_data_shape_z.set(mode["top_microscope_data_shape"][0])
+        self.top_microscope_data_shape_y.set(mode["top_microscope_data_shape"][1])
+        self.top_microscope_data_shape_x.set(mode["top_microscope_data_shape"][2])
+        self.z_resolution_in_um.set(mode["z_resolution_in_um"])
+        self.zyla_camera_exposure_time_in_ms.set(mode["zyla_camera_exposure_time_in_ms"])
+        self.laser_405_vol_1.set(mode["laser_power"][0][0])
+        self.laser_405_vol_2.set(mode["laser_power"][0][1])
+        self.laser_405_vol_3.set(mode["laser_power"][0][2])
+        self.laser_405_vol_4.set(mode["laser_power"][0][3])
+        self.laser_488_vol_1.set(mode["laser_power"][1][0])
+        self.laser_488_vol_2.set(mode["laser_power"][1][1])
+        self.laser_488_vol_3.set(mode["laser_power"][1][2])
+        self.laser_488_vol_4.set(mode["laser_power"][1][3])
+        self.laser_561_vol_1.set(mode["laser_power"][2][0])
+        self.laser_561_vol_2.set(mode["laser_power"][2][1])
+        self.laser_561_vol_3.set(mode["laser_power"][2][2])
+        self.laser_561_vol_4.set(mode["laser_power"][2][3])
+        self.laser_640_vol_1.set(mode["laser_power"][3][0])
+        self.laser_640_vol_2.set(mode["laser_power"][3][1])
+        self.laser_640_vol_3.set(mode["laser_power"][3][2])
+        self.laser_640_vol_4.set(mode["laser_power"][3][3])
+        self.laser_output_repeat.set(mode["laser_output_repeat"])
+        self.filter1.set(mode["filter1"])
+        self.filter2.set(mode["filter2"])
+        self.total_volume.set(mode["total_volume"])
+        self.rest_time.set(mode["rest_time"])
+        self.bot_microscope_data_shape_z.set(mode["bot_microscope_data_shape"][0])
+        self.bot_microscope_data_shape_y.set(mode["bot_microscope_data_shape"][1])
+        self.bot_microscope_data_shape_x.set(mode["bot_microscope_data_shape"][2])
+        self.bot_microscope_saving_mode.set(mode["bot_microscope_saving_mode"])
+        self.tracker_crop_size.set(mode["tracker_crop_size"])
+        self.tracker_feature_size.set(mode["tracker_feature_size"])
+        self.tracker_camera_source.set(mode["tracker_camera_source"])
+        self.stage_xy_limit.set(mode["stage_xy_limit"])
+        self.flir_camera_exposure.set(mode["flir_camera_exposure_and_rate"][0])
+        self.flir_camera_rate.set(mode["flir_camera_exposure_and_rate"][1])
+        self.stage_max_velocity_xy.set(mode["stage_max_velocities"][0])
+        self.stage_max_velocity_z.set(mode["stage_max_velocities"][1])
+        self.update_mode()
+
+    def change_focus(self):
+        current_widget = self.window.focus_get()
+        current_widget_str = str(current_widget)
+        if current_widget_str == ".!entry":
+            current_widget_str = ".!entry1"
+
+        if current_widget_str[:7] == ".!entry":
+            entry_num = int(current_widget_str[7:])
+            if 1 <= entry_num < 36:
+                current_widget.tk_focusNext().focus()
+                if int(str(self.window.focus_get())[7:]) == 20:
+                    self.window.focus_get().tk_focusNext().focus()
+
+                pos = len(str(self.window.focus_get().get))
+                self.window.focus_get().icursor(pos)
+            else:
+                self.window.focus_set()
+        else:
+            self.window.focus_set()
 
     def update_mode(self):
         self.mode["top_microscope_saving_mode"] = self.top_microscope_saving_mode.get()
@@ -972,7 +1230,7 @@ class LambdaApp():
                                                       float(self.flir_camera_rate.get())]
         self.mode["stage_max_velocities"] = [float(self.stage_max_velocity_xy.get()),
                                              float(self.stage_max_velocity_z.get())]
-        print(self.mode)
-
+        self.mode_name_to_load.set('')
+        self.change_focus()
 
 LambdaApp()
