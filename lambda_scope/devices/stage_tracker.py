@@ -23,6 +23,8 @@ Options:
                                             [default: UINT8_ZYX_1_1200_1920]
 """
 
+import time
+import json
 from typing import Tuple
 
 import zmq
@@ -49,6 +51,8 @@ class TrackerDevice():
             data_out: Tuple[str, int],
             fmt: str,
             name="tracker"):
+
+        self.status = {}
 
         self.poller = zmq.Poller()
         self.name = name
@@ -95,6 +99,9 @@ class TrackerDevice():
 
         self.poller.register(self.command_subscriber.socket, zmq.POLLIN)
         self.poller.register(self.data_subscriber.socket, zmq.POLLIN)
+
+        time.sleep(1)
+        self.publish_status()
 
     def process(self):
         """This processes the incoming images and sends move commands to zaber."""
@@ -143,6 +150,7 @@ class TrackerDevice():
             datatype=self.dtype)
 
         self.poller.register(self.data_subscriber.socket, zmq.POLLIN)
+        self.publish_status()
 
     def set_shape(self, z, y ,x):
         self.poller.unregister(self.data_subscriber.socket)
@@ -171,29 +179,50 @@ class TrackerDevice():
             datatype=self.dtype)
 
         self.poller.register(self.data_subscriber.socket, zmq.POLLIN)
+        self.publish_status()
 
     def set_feat_size(self, feat_size):
         self.tracker.set_feat_size(feat_size)
+        self.publish_status()
 
     def set_crop_size(self, crop_size):
         self.tracker.set_crop_size(crop_size)
+        self.publish_status()
 
     def stop(self):
         """Stops the subscription to data port."""
         if self.tracking:
             self.tracking = 0
             self.command_publisher.send("zaber stop_xy")
+            self.publish_status()
 
     def start(self):
         """Start subscribing to image data."""
         if not self.tracking:
             self.tracking = 1
+            self.publish_status()
 
     def shutdown(self):
         """Shutdown the tracking device."""
-
         self.stop()
         self.running = 0
+        self.publish_status()
+
+    def update_status(self):
+        """updates the status dictionary."""
+        self.status["shape"] = self.shape
+        self.status["tracker_camera_source"] = self.camera_number
+        self.status["feature_size"] = self.tracker.feat_size
+        self.status["crop_size"] = self.tracker.crop_size
+        self.status["tracking"] = self.tracking
+        self.status["device"] = self.running
+
+
+    def publish_status(self):
+        """Publishes the status to the hub and logger."""
+        self.update_status()
+        self.command_publisher.send("hub " + json.dumps({self.name: self.status}, default=int))
+        self.command_publisher.send("logger " + json.dumps({self.name: self.status}, default=int))
 
     def run(self):
         """This subscribes to images and adds time stamp
