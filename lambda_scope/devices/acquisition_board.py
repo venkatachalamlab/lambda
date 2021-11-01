@@ -69,7 +69,7 @@ class PiezoCameraLaserDAQ():
         self.initiated_flag_camera = 0
         self.initiated_flag_laser = 0
         self.device_status = 1
-        self.laser_continuous = False
+        self.laser_continuous = 0
 
         self.daq0 = DAQDevice(serial_num_daq0, 0)
         self.daq1 = DAQDevice(serial_num_daq1, 1)
@@ -90,6 +90,8 @@ class PiezoCameraLaserDAQ():
             host=outbound[0],
             port=outbound[1],
             bound=outbound[2])
+        time.sleep(1)
+        self.publish_status()
 
     def single_laser(self, idx, percentage_value):
         """Turns on the laser specified with idx."""
@@ -126,9 +128,10 @@ class PiezoCameraLaserDAQ():
     def set_laser_continuous(self, is_continuous):
         """Sets the status of continuous scan option for the laser."""
         if is_continuous in ("True", True, "1", 1):
-            self.laser_continuous = True
+            self.laser_continuous = 1
         else:
-            self.laser_continuous = False
+            self.laser_continuous = 0
+        self.publish_status()
 
     def set_exposure_time(self, exposure_time):
         """Set the closest valid exposure time."""
@@ -260,9 +263,10 @@ class PiezoCameraLaserDAQ():
         self.status["488nm"] = np.array_str(self.laser_power[1, :])
         self.status["561nm"] = np.array_str(self.laser_power[2, :])
         self.status["640nm"] = np.array_str(self.laser_power[3, :])
-        self.status["camera_signal_status"] = self.initiated_flag_camera
-        self.status["laser_signal_status"] = self.initiated_flag_laser
-        self.status["device_status"] = self.device_status
+        self.status["laser_output_repeat"] = self.laser_continuous
+        self.status["camera_runnig"] = self.initiated_flag_camera
+        self.status["laser_running"] = self.initiated_flag_laser
+        self.status["device"] = self.device_status
 
     def publish_status(self):
         """Publishes the status to the hub and logger."""
