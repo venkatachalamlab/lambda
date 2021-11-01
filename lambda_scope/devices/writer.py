@@ -31,6 +31,7 @@ Options:
 from typing import Tuple
 import multiprocessing
 import json
+import time
 
 import zmq
 from docopt import docopt
@@ -72,6 +73,11 @@ class  WriteSession(multiprocessing.Process):
         self.directory = directory
         self.poller = zmq.Poller()
 
+        self.status_publisher = Publisher(
+            host=status_out[0],
+            port=status_out[1],
+            bound=status_out[2])
+
         self.command_subscriber = ObjectSubscriber(
             obj=self,
             name=name,
@@ -89,10 +95,8 @@ class  WriteSession(multiprocessing.Process):
         self.poller.register(self.command_subscriber.socket, zmq.POLLIN)
         self.poller.register(self.data_subscriber.socket, zmq.POLLIN)
 
-        self.status_publisher = Publisher(
-            host=status_out[0],
-            port=status_out[1],
-            bound=status_out[2])
+        time.sleep(1)
+        self.publish_status()
 
     def set_shape(self, z, y, x):
         """Updates the shape, closes the data subscriber, creates a new data subscriber"""
@@ -157,9 +161,9 @@ class  WriteSession(multiprocessing.Process):
     def update_status(self):
         """Updates the status dictionary."""
         self.status["shape"] = self.shape
-        self.status["saving_status"] = self.saving_status
-        self.status["subscription_status"] = self.subscription_status
-        self.status["device_status"] = self.device_status
+        self.status["saving"] = self.saving_status
+        self.status["running"] = self.subscription_status
+        self.status["device"] = self.device_status
 
     def publish_status(self):
         """Publishes the status to the hub and logger."""
