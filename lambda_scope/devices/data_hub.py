@@ -96,6 +96,7 @@ class DataHub():
 
         self.poller.register(self.command_subscriber.socket, zmq.POLLIN)
         self.poller.register(self.data_subscriber.socket, zmq.POLLIN)
+        self.publish_status()
 
     def set_shape(self, z, y, x):
         """Changes the shape of input and output array."""
@@ -226,10 +227,10 @@ class DataHub():
     def update_status(self):
         """updates the status dictionary."""
         self.status["shape"] = self.shape
-        self.status["n_imaging"] = self.imaging_volumes
-        self.status["t_resting"] = self.resting_time
-        self.status["subscription_status"] = self.subscription_status
-        self.status["device_status"] = self.device_status
+        self.status["total_volume"] = self.imaging_volumes
+        self.status["rest_time"] = self.resting_time
+        self.status["running"] = self.subscription_status
+        self.status["device"] = self.device_status
 
 
     def publish_status(self):
