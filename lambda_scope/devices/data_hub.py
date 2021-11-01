@@ -96,6 +96,7 @@ class DataHub():
 
         self.poller.register(self.command_subscriber.socket, zmq.POLLIN)
         self.poller.register(self.data_subscriber.socket, zmq.POLLIN)
+        time.sleep(0.9)
         self.publish_status()
 
     def set_shape(self, z, y, x):
@@ -121,7 +122,6 @@ class DataHub():
             bound=self.data_in[2])
 
         self.poller.register(self.data_subscriber.socket, zmq.POLLIN)
-        time.sleep(0.9)
         self.publish_status()
 
     def set_timer(self, nvolumes, off_time):
