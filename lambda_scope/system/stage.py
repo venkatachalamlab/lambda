@@ -16,7 +16,7 @@ Options:
     --format=UINT8_ZYX_22_512_1024      Image format.
                                             [default: UINT8_ZYX_1_512_512]
     --camera=<number>                   1 for camera1, 2 for camera2 and * to run both.
-                                            [default: 1]
+                                            [default: *]
 """
 
 import time
@@ -101,6 +101,7 @@ def execute(job, fmt: str, camera: str):
         job.append(Popen(["lambda_stage_data_hub",
                           "--data_in=L" + str(data_camera_out + i),
                           "--commands_in=" + forwarder_out,
+                          "--status_out=" + forwarder_in,
                           "--data_out=" + str(data_stamped + i),
                           "--format=" + fmt,
                           "--name=stage_data_hub"+ str(camera_number)]))
