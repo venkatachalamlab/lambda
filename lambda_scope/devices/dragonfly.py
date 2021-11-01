@@ -220,7 +220,7 @@ class DragonflyDevice():
             self.status["Pinhole Size"] = "25um"
         elif self._execute("get_confocal_mode")[:-3] == "-1":
             self.status["Pinhole Size"] = "NA"
-        self.status["device_status"] = self.device_status
+        self.status["device"] = self.device_status
 
     def publish_status(self):
         """Publishes the status to the hub and logger."""
