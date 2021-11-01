@@ -66,6 +66,7 @@ class ZaberController():
             zaber_usb_port_z="COM5",
             name="zaber"):
 
+        self.status = {}
         self.position = {}
 
         self.name = name
@@ -78,8 +79,10 @@ class ZaberController():
         self.speed_z = 1.0
         self.mid_xy = 100000.0
         self.speed_max_z = 1000.0
+        self.stage_xy_limit = 10000
         self.fine_speed_max_xy = 100.0
         self.coarse_speed_max_xy = 1000.0
+
 
         self.command_subscriber = ObjectSubscriber(
             obj=self,
@@ -106,7 +109,7 @@ class ZaberController():
         self.set_max_velocities(self.coarse_speed_max_xy, self.speed_max_z)
 
         self.stop_xy()
-        self.set_limit_xy(10000)
+        self.set_limit_xy(self.stage_xy_limit)
 
         self.home_z()
         time.sleep(5)
@@ -116,6 +119,7 @@ class ZaberController():
         self.execute(self.serial_obj_z, "set_pos", pos=0)
         print("stage velocity in z direction: {} um/s".format(self.speed_z))
         print("Stage: Initialized.")
+        self.publish_status()
 
     def clear_warnings(self):
         self.execute(self.serial_obj_xy, "warning_clear")
@@ -123,8 +127,9 @@ class ZaberController():
 
     def set_limit_xy(self, limit):
         """Sets software limits for the motors."""
-        upper_limit_pos = self.mid_xy + limit
-        lower_limit_pos = self.mid_xy - limit
+        self.stage_xy_limit = limit
+        upper_limit_pos = self.mid_xy + self.stage_xy_limit
+        lower_limit_pos = self.mid_xy - self.stage_xy_limit
 
         half_way_data = data_from_pos_xy(self.mid_xy)
         upper_limit_data = data_from_pos_xy(upper_limit_pos)
@@ -133,14 +138,18 @@ class ZaberController():
         self.execute(self.serial_obj_xy, "set_pos", pos=half_way_data)
         self.execute(self.serial_obj_xy, "set_limit_max", limit=upper_limit_data)
         self.execute(self.serial_obj_xy, "set_limit_min", limit=lower_limit_data)
+        self.publish_status()
 
     def set_max_velocities(self, max_velocity_xy, max_velocity_z):
         """Sets maximum allowed velocities."""
+        self.coarse_speed_max_xy = max_velocity_xy
+        self.speed_max_z = max_velocity_z
         max_velocity_data_xy = data_from_vel_xy(max_velocity_xy)
         max_velocity_data_z = data_from_vel_z(max_velocity_z)
 
         self.execute(self.serial_obj_xy, "set_maxspeed", maxspeed=max_velocity_data_xy)
         self.execute(self.serial_obj_z, "set_maxspeed", maxspeed=max_velocity_data_z)
+        self.publish_status()
 
     def get_pos_xy(self):
         """Returns the current position."""
@@ -170,6 +179,7 @@ class ZaberController():
         temp = self.speed_z * (2 ** arg)
         if 1.0 <= temp < self.speed_max_z:
             self.speed_z = np.rint(temp)
+        self.publish_status()
 
         print("stage velocity in z direction: {} um/s".format(self.speed_z))
 
@@ -218,6 +228,7 @@ class ZaberController():
         self.serial_obj_z.close()
         self.serial_obj_xy.__del__()
         self.serial_obj_z.__del__()
+        self.publish_status()
 
     def run(self):
         """Starts a loop and receives and processes a message."""
@@ -238,6 +249,19 @@ class ZaberController():
             r = port.readline()
         r = r.decode("utf-8")[1:-2]
         return r.split(" ")
+
+    def update_status(self):
+        """updates the status dictionary."""
+        self.status["stage_xy_limit"] = self.stage_xy_limit
+        self.status["stage_max_xy_velocity"] = self.coarse_speed_max_xy
+        self.status["stage_max_z_velocity"] = self.speed_max_z
+        self.status["device"] = self.device_status
+
+    def publish_status(self):
+        """Publishes the status to the hub and logger."""
+        self.update_status()
+        self.status_publisher.send("hub " + json.dumps({self.name: self.status}, default=int))
+        self.status_publisher.send("logger " + json.dumps({self.name: self.status}, default=int))
 
 def pos_from_data_z(data):
     return data * 2 / 21
