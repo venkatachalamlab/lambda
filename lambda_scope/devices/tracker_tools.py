@@ -80,7 +80,7 @@ class PIDController():
 
         self.dt = dt
 
-        self.axes_correction = np.array([[[1, 0], [0, 1]],
+        self.axes_correction = np.array([[[1, 0], [0, -1]],
                                          [[0, 1], [1, 0]]])
 
         self.converter = self.axes_correction[camera_number-1]
