@@ -128,7 +128,7 @@ class TrackerDevice():
 
         if self.tracking:
             self.command_publisher.send(
-                "zaber xy_vel {} {}".format(vel[0], vel[1]))
+                "zaber vel_xy {} {}".format(vel[0], vel[1]))
             self.command_publisher.send("zaber update_position")
 
     def set_rate(self, rate):
