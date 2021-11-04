@@ -153,7 +153,7 @@ class LambdaApp():
         self.bot_microscope_data_shape_x.set("512")
         self.tracker_camera_source.set("1")
         self.flir_camera_exposure.set("10000.0")
-        self.flir_camera_rate.set("100.0")
+        self.flir_camera_rate.set("98.0")
         self.tracker_feature_size.set("2500")
         self.tracker_crop_size.set("300")
         self.z_resolution_in_um.set("1.0")
@@ -1225,6 +1225,7 @@ class LambdaApp():
         self._load()
         self._update_gui_mode()
         self._compare_modes()
+        self.mode_name_to_load.set("")
 
     def save(self):
         self._update_gui_mode()
@@ -1334,36 +1335,50 @@ class LambdaApp():
                                                                        self.gui_mode["top_microscope_data_shape"][2]))
         self.client.process("DO _daq_set_stack_size {}".format(self.gui_mode["top_microscope_data_shape"][0]))
         self.client.process("DO _daq_set_voltage_step {}".format(self.gui_mode["z_resolution_in_um"]))
-
         self.client.process("DO _dragonfly_set_filter 1 {}".format(self.gui_mode["filter1"]))
         self.client.process("DO _dragonfly_set_filter 2 {}".format(self.gui_mode["filter2"]))
         self.client.process("DO _data_hub_set_timer {} {}".format(self.gui_mode["total_volume"], self.gui_mode["rest_time"]))
-        self.client.process("DO _flir_camera_stop")
-        self.client.process("DO _flir_camera_set_height {}".format(self.gui_mode["bot_microscope_data_shape"][1]))
-        self.client.process("DO _flir_camera_set_width {}".format(self.gui_mode["bot_microscope_data_shape"][2]))
-        self.client.process("DO _stage_data_hub_set_shape {} {} {}".format(self.gui_mode["bot_microscope_data_shape"][0],
-                                                                            self.gui_mode["bot_microscope_data_shape"][1],
-                                                                            self.gui_mode["bot_microscope_data_shape"][2]))
-        self.client.process("DO _tracker_set_shape {} {} {}".format(self.gui_mode["bot_microscope_data_shape"][0],
-                                                                     self.gui_mode["bot_microscope_data_shape"][1],
-                                                                     self.gui_mode["bot_microscope_data_shape"][2]))
-        self.client.process("DO _stage_writer_set_shape {} {} {}".format(self.gui_mode["bot_microscope_data_shape"][0],
-                                                                          self.gui_mode["bot_microscope_data_shape"][1],
-                                                                          self.gui_mode["bot_microscope_data_shape"][2]))
-        self.client.process("DO _stage_displayer_set_shape {} {} {}".format(self.gui_mode["bot_microscope_data_shape"][0],
-                                                                             self.gui_mode["bot_microscope_data_shape"][1],
-                                                                             self.gui_mode["bot_microscope_data_shape"][2]))
         self.client.process("DO _stage_writer_set_saving_mode {}".format(self.gui_mode["bot_microscope_saving_mode"]))
-        self.client.process("DO _tracker_set_crop_size {}".format(self.gui_mode["tracker_crop_size"]))
         self.client.process("DO _tracker_set_feat_size {}".format(self.gui_mode["tracker_feature_size"]))
-        self.client.process("DO _tracker_set_camera_number {}".format(self.gui_mode["tracker_camera_source"]))
-        self.client.process("DO _flir_camera_set_exposure {} {}".format(self.gui_mode["flir_camera_exposure_and_rate"][0],
-                                                                         self.gui_mode["flir_camera_exposure_and_rate"][1]))
         self.client.process("DO _tracker_set_rate {}".format(self.gui_mode["flir_camera_exposure_and_rate"][1]))
         self.client.process("DO _zaber_set_limit_xy {}".format(self.gui_mode["stage_xy_limit"]))
         self.client.process("DO _zaber_set_max_velocities {} {}".format(self.gui_mode["stage_max_velocities"][0],
                                                                          self.gui_mode["stage_max_velocities"][1]))
-        self.client.process("DO _flir_camera_start")
+
+        exp_diff = abs(float(self.gui_mode["flir_camera_exposure_and_rate"][0])-self.lambda_mode["flir_camera_exposure_and_rate"][0])
+        exp_min = abs(min(float(self.gui_mode["flir_camera_exposure_and_rate"][0]) ,self.lambda_mode["flir_camera_exposure_and_rate"][0]))
+        exp_ratio = exp_diff / exp_min
+        fps_diff = abs(float(self.gui_mode["flir_camera_exposure_and_rate"][1])-self.lambda_mode["flir_camera_exposure_and_rate"][1])
+        fps_min = abs(min(float(self.gui_mode["flir_camera_exposure_and_rate"][1]) ,self.lambda_mode["flir_camera_exposure_and_rate"][1]))
+        fps_ratio = fps_diff / fps_min
+
+        if self.gui_mode["bot_microscope_data_shape"][0] != self.lambda_mode["bot_microscope_data_shape"][0] or \
+        self.gui_mode["bot_microscope_data_shape"][1] != self.lambda_mode["bot_microscope_data_shape"][1] or \
+        self.gui_mode["bot_microscope_data_shape"][2] != self.lambda_mode["bot_microscope_data_shape"][2] or \
+        self.gui_mode["tracker_camera_source"] != self.lambda_mode["tracker_camera_source"] or \
+        exp_ratio > 0.04 or fps_ratio > 0.04:
+            self.client.process("DO _flir_camera_stop")
+            time.sleep(1)
+            self.client.process("DO _tracker_set_camera_number {}".format(self.gui_mode["tracker_camera_source"]))
+            self.client.process("DO _stage_data_hub_set_shape {} {} {}".format(self.gui_mode["bot_microscope_data_shape"][0],
+                                                                               self.gui_mode["bot_microscope_data_shape"][1],
+                                                                               self.gui_mode["bot_microscope_data_shape"][2]))
+            self.client.process("DO _tracker_set_shape {} {} {}".format(self.gui_mode["bot_microscope_data_shape"][0],
+                                                                        self.gui_mode["bot_microscope_data_shape"][1],
+                                                                        self.gui_mode["bot_microscope_data_shape"][2]))
+            self.client.process("DO _stage_writer_set_shape {} {} {}".format(self.gui_mode["bot_microscope_data_shape"][0],
+                                                                             self.gui_mode["bot_microscope_data_shape"][1],
+                                                                             self.gui_mode["bot_microscope_data_shape"][2]))
+            self.client.process("DO _stage_displayer_set_shape {} {} {}".format(self.gui_mode["bot_microscope_data_shape"][0],
+                                                                                self.gui_mode["bot_microscope_data_shape"][1],
+                                                                                self.gui_mode["bot_microscope_data_shape"][2]))
+            self.client.process("DO _flir_camera_set_height {}".format(self.gui_mode["bot_microscope_data_shape"][1]))
+            self.client.process("DO _flir_camera_set_width {}".format(self.gui_mode["bot_microscope_data_shape"][2]))
+            self.client.process("DO _flir_camera_set_exposure {} {}".format(self.gui_mode["flir_camera_exposure_and_rate"][0],
+                                                                            self.gui_mode["flir_camera_exposure_and_rate"][1]))
+            time.sleep(1)
+            self.client.process("DO _flir_camera_start")
+        self.client.process("DO _tracker_set_crop_size {}".format(self.gui_mode["tracker_crop_size"]))
 
     def _change_focus(self):
         current_widget = self.window.focus_get()
