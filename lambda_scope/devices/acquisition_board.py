@@ -135,7 +135,7 @@ class PiezoCameraLaserDAQ():
 
     def set_exposure_time(self, exposure_time):
         """Set the closest valid exposure time."""
-        self.n_increments = (exposure_time // 5) * 2
+        self.n_increments = int((exposure_time // 5) * 2)
         self._initialize()
         self._prepare_daq(self.z_offset)
         self.publish_status()

@@ -117,10 +117,10 @@ class DragonflyDevice():
         self._execute("set_modality_bf")
 
         self._execute("set_filter_speed", filter_port=1, filter_speed=2)
-        self._execute("set_filter", filter_port=1, filter_number=2)
+        self._execute("set_filter", filter_port=1, filter_number=4)
 
         self._execute("set_filter_speed", filter_port=2, filter_speed=2)
-        self._execute("set_filter", filter_port=2, filter_number=2)
+        self._execute("set_filter", filter_port=2, filter_number=4)
 
         self._execute("set_emission_dichroic", emission=3)
 

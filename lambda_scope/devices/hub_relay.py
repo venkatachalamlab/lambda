@@ -69,50 +69,50 @@ class LambdaHub(Hub):
         else:
             self.flir_cameras = [int(flir_camera)]
 
-    def set_mode(self, mode):
-        mode_file = os.path.join(self.mode_directory , "modes.json")
-        with open(mode_file, 'r') as f:
-            modes_dict = json.load(f)
-            self.mode_dict = modes_dict[mode]
+    # def set_mode(self, mode):
+    #     mode_file = os.path.join(self.mode_directory , "modes.json")
+    #     with open(mode_file, 'r') as f:
+    #         modes_dict = json.load(f)
+    #     self.mode_dict = modes_dict[mode]
 
-        self.stop()
-        for i in range(4):
-            for j in range(4):
-                self._daq_set_laser(i, self.mode_dict["laser_power"][i][j], j)
-        self._daq_set_las_continuous(self.mode_dict["laser_output_continuous"])
-        self._writer_set_saving_mode(self.mode_dict["saving_mode"])
-        self._zyla_camera_set_trigger_mode(self.mode_dict["zyla_camera_trigger_mode"])
-        self._dragonfly_set_imaging_mode(self.mode_dict["dragonfly_imaging_mode"])
-        self.shape = self.mode_dict["shape"]
-        self._zyla_camera_set_shape(*self.shape)
-        self._writer_set_shape(*self.shape)
-        self._data_hub_set_shape(*self.shape)
-        self._displayer_set_shape(*self.shape)
-        self._daq_set_stack_size(self.shape[0])
-        self._daq_set_voltage_step(self.mode_dict["z_resolution_in_um"])
-        self._daq_set_exposure_time(self.mode_dict["exposure_time"])
-        self._dragonfly_set_filter(1, self.mode_dict["filter1"])
-        self._dragonfly_set_filter(2, self.mode_dict["filter2"])
-        self._data_hub_set_timer(self.mode_dict["total_volumes"], self.mode_dict["rest_time"])
-        self._flir_camera_stop()
-        self.bottom_scope_shape = self.mode_dict["bottom_scope_shape"]
-        self._flir_camera_set_height(self.bottom_scope_shape[1])
-        self._flir_camera_set_width(self.bottom_scope_shape[2])
-        self._stage_data_hub_set_shape(*self.bottom_scope_shape)
-        self._tracker_set_shape(*self.bottom_scope_shape)
-        self._stage_writer_set_shape(*self.bottom_scope_shape)
-        self._stage_displayer_set_shape(*self.bottom_scope_shape)
-        self._stage_writer_set_saving_mode(self.mode_dict["bottom_scope_saving_mode"])
-        self._tracker_set_crop_size(self.mode_dict["tracker_crop_size"])
-        self._tracker_set_feat_size(self.mode_dict["tracker_feature_size"])
-        self._tracker_set_camera_number(self.mode_dict["tracker_camera_source"])
-        self.exposure, self.rate = self.mode_dict["bottom_scope_exposure_rate"]
-        self._flir_camera_set_exposure(self.exposure, self.rate)
-        self._tracker_set_rate(self.rate)
-        self._zaber_set_limit_xy(self.mode_dict["stage_xy_limit"])
-        self.max_xy_velocities = self.mode_dict["stage_max_velocities"]
-        self._flir_camera_start()
-        print("mode "+ str(mode) + " is set.")
+    #     self.stop()
+    #     for i in range(4):
+    #         for j in range(4):
+    #             self._daq_set_laser(i, self.mode_dict["laser_power"][i][j], j)
+    #     self._daq_set_las_continuous(self.mode_dict["laser_output_repeat"])
+    #     self._writer_set_saving_mode(self.mode_dict["top_microscope_saving_mode"])
+    #     self._zyla_camera_set_trigger_mode(self.mode_dict["zyla_camera_trigger_mode"])
+    #     self._dragonfly_set_imaging_mode(self.mode_dict["dragonfly_imaging_mode"])
+    #     self.shape = self.mode_dict["top_microscope_data_shape"]
+    #     self._zyla_camera_set_shape(*self.shape)
+    #     self._writer_set_shape(*self.shape)
+    #     self._data_hub_set_shape(*self.shape)
+    #     self._displayer_set_shape(*self.shape)
+    #     self._daq_set_stack_size(self.shape[0])
+    #     self._daq_set_voltage_step(self.mode_dict["z_resolution_in_um"])
+    #     self._daq_set_exposure_time(self.mode_dict["zyla_camera_exposure_time_in_ms"])
+    #     self._dragonfly_set_filter(1, self.mode_dict["filter1"])
+    #     self._dragonfly_set_filter(2, self.mode_dict["filter2"])
+    #     self._data_hub_set_timer(self.mode_dict["total_volume"], self.mode_dict["rest_time"])
+    #     self._flir_camera_stop()
+    #     self.bottom_scope_shape = self.mode_dict["bot_microscope_data_shape"]
+    #     self._flir_camera_set_height(self.bottom_scope_shape[1])
+    #     self._flir_camera_set_width(self.bottom_scope_shape[2])
+    #     self._stage_data_hub_set_shape(*self.bottom_scope_shape)
+    #     self._tracker_set_shape(*self.bottom_scope_shape)
+    #     self._stage_writer_set_shape(*self.bottom_scope_shape)
+    #     self._stage_displayer_set_shape(*self.bottom_scope_shape)
+    #     self._stage_writer_set_saving_mode(self.mode_dict["bot_microscope_saving_mode"])
+    #     self._tracker_set_crop_size(self.mode_dict["tracker_crop_size"])
+    #     self._tracker_set_feat_size(self.mode_dict["tracker_feature_size"])
+    #     self._tracker_set_camera_number(self.mode_dict["tracker_camera_source"])
+    #     self.exposure, self.rate = self.mode_dict["flir_camera_exposure_and_rate"]
+    #     self._flir_camera_set_exposure(self.exposure, self.rate)
+    #     self._tracker_set_rate(self.rate)
+    #     self._zaber_set_limit_xy(self.mode_dict["stage_xy_limit"])
+    #     self.max_xy_velocities = self.mode_dict["stage_max_velocities"]
+    #     self._flir_camera_start()
+    #     print("mode "+ str(mode) + " is set.")
 
 
     def start(self):
@@ -155,12 +155,12 @@ class LambdaHub(Hub):
         self._stage_writer_stop()
         self._daq_stop() # DAQ should stop after the camera,
 
-    def update_status(self):
-        self._data_hub_publish_status()
-        self._writer_publish_status()
-        self._dragonfly_publish_status()
-        self._daq_publish_status()
-        self._zyla_camera_publish_status()
+    # def update_status(self):
+    #     self._data_hub_publish_status()
+    #     self._writer_publish_status()
+    #     self._dragonfly_publish_status()
+    #     self._daq_publish_status()
+    #     self._zyla_camera_publish_status()
     #     self._runner_publish_status()
     #     self._valve_publish_status()
 
@@ -185,9 +185,6 @@ class LambdaHub(Hub):
 
     def _logger_shutdown(self):
         self.send("logger shutdown")
-
-
-
 
     def _dragonfly_shutdown(self):
         self.send("dragonfly shutdown")
@@ -330,6 +327,8 @@ class LambdaHub(Hub):
             name = "data_hub{}".format(i)
             self.send("{} publish_status".format(name))
 
+
+
     def _stage_data_hub_set_shape(self, z, y, x):
         for i in self.flir_cameras:
             name = "stage_data_hub{}".format(i)
@@ -404,13 +403,6 @@ class LambdaHub(Hub):
             self.send("{} publish_status".format(name))
 
 
-
-
-    def _zyla_camera_set_stack_size(self, stack_size):
-        for i in self.zyla_cameras:
-            name = "ZylaCamera{}".format(i)
-            self.send("{} set_stack_size {}".format(name, stack_size))
-
     def _zyla_camera_set_shape(self, z, y, x):
         for i in self.zyla_cameras:
             name = "ZylaCamera{}".format(i)
@@ -440,6 +432,7 @@ class LambdaHub(Hub):
         for i in self.zyla_cameras:
             name = "ZylaCamera{}".format(i)
             self.send(name + " shutdown")
+
 
     def _flir_camera_start(self):
         for i in self.flir_cameras:

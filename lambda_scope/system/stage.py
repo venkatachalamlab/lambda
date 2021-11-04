@@ -33,6 +33,9 @@ def execute(job, fmt: str, camera: str):
     forwarder_in = '192.168.170.111:5000'
     forwarder_out = '192.168.170.111:5001'
 
+
+    saving_mode = "0"
+    flir_exposure = "10000"
     XInputToZMQPub_out = str(6000)
     processor_out = str(6001)
     data_camera_out = 6002
@@ -111,6 +114,7 @@ def execute(job, fmt: str, camera: str):
                           "--commands_in=" + forwarder_out,
                           "--status_out=" + forwarder_in,
                           "--format=" + fmt,
+                          "--saving_mode=" + saving_mode,
                           "--directory="+ data_directory,
                           "--video_name=camera" + str(camera_number),
                           "--name=stage_writer"+ str(camera_number)]))
@@ -122,7 +126,8 @@ def execute(job, fmt: str, camera: str):
                           "--status=" + forwarder_in,
                           "--data=*:" + str(data_camera_out + i),
                           "--width=" + str(shape[2]),
-                          "--height=" + str(shape[1])]))
+                          "--height=" + str(shape[1]),
+                          "--exposure_time=" + flir_exposure]))
 
 def run(fmt: str, camera: str):
     """Run all system devices."""

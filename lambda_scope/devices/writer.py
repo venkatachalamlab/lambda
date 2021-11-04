@@ -22,6 +22,8 @@ Options:
     --format=UINT16_ZYX_20_512_512      Size and type of image being sent. Allowed
                                         values: UINT8_YX_512_512, UINT8_YXC_512_512_3
                                             [default: UINT16_ZYX_20_512_1024]
+    --saving_mode=mode                  True writes data to file
+                                            [default: 0]
     --video_name=NAME                   Directory to write data to.
                                             [default: data]
     --name=NAME                         Device name.
@@ -53,6 +55,7 @@ class  WriteSession(multiprocessing.Process):
             commands_in: Tuple[str, int],
             status_out: Tuple[str, int],
             fmt: str,
+            saving_mode: str,
             directory: str,
             name="writer",
             video_name="data"):
@@ -61,7 +64,7 @@ class  WriteSession(multiprocessing.Process):
 
         self.status = {}
         self.device_status = 1
-        self.saving_status = 0
+        self.saving_status = int(saving_mode)
         self.subscription_status = 0
 
         self.name = name
@@ -182,6 +185,7 @@ def main():
         commands_in=parse_host_and_port(args["--commands_in"]),
         status_out=parse_host_and_port(args["--status_out"]),
         fmt=args["--format"],
+        saving_mode=args["--saving_mode"],
         directory=args["--directory"],
         name=args["--name"],
         video_name=args["--video_name"])
