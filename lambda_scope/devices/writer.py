@@ -105,13 +105,7 @@ class  WriteSession(multiprocessing.Process):
         """Updates the shape, closes the data subscriber, creates a new data subscriber"""
         self.shape = (z, y, x)
         self.poller.unregister(self.data_subscriber.socket)
-        self.data_subscriber.socket.close()
-        self.data_subscriber = TimestampedSubscriber(
-            host=self.data_in[0],
-            port=self.data_in[1],
-            shape=self.shape,
-            datatype=self.dtype,
-            bound=self.data_in[2])
+        self.data_subscriber.set_shape(self.shape)
         self.poller.register(self.data_subscriber.socket, zmq.POLLIN)
         self.publish_status()
 
