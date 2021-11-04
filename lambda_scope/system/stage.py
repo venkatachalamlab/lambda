@@ -16,7 +16,7 @@ Options:
     --format=UINT8_ZYX_22_512_1024      Image format.
                                             [default: UINT8_ZYX_1_512_512]
     --camera=<number>                   1 for camera1, 2 for camera2 and * to run both.
-                                            [default: *]
+                                            [default: 1]
 """
 
 import time

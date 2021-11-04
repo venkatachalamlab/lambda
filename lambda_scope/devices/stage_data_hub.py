@@ -98,27 +98,14 @@ class DataHub():
     def set_shape(self, z, y, x):
         """Changes the shape of input and output array."""
         self.shape = (z, y, x)
+
         self.poller.unregister(self.data_subscriber.socket)
 
-        self.data_publisher.context.term()
-        self.data_publisher.socket.close()
-        self.data_subscriber.socket.close()
-
-        self.data_publisher = TimestampedPublisher(
-            host=self.data_out[0],
-            port=self.data_out[1],
-            datatype=self.dtype,
-            shape=self.shape,
-            bound=self.data_out[2])
-
-        self.data_subscriber = Subscriber(
-            host=self.data_in[0],
-            port=self.data_in[1],
-            datatype=self.dtype,
-            shape=self.shape,
-            bound=self.data_in[2])
+        self.data_publisher.set_shape((z, y, x))
+        self.data_subscriber.set_shape((z, y, x))
 
         self.poller.register(self.data_subscriber.socket, zmq.POLLIN)
+
         self.publish_status()
 
     def shutdown(self):

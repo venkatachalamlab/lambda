@@ -42,6 +42,11 @@ class Publisher():
         self.numel = np.prod(shape)
         self.nbytes = self.numel * self.dtype.itemsize
 
+    def set_shape(self, shape):
+        self.shape = shape
+        self.numel = np.prod(shape)
+        self.nbytes = self.numel * self.dtype.itemsize
+
     def send(self, data):
         """Publish an array."""
         self.socket.send(data)
@@ -80,6 +85,11 @@ class Subscriber():
         self.shape = shape
         self.dtype = np.dtype(datatype)
 
+        self.numel = np.prod(shape)
+        self.nbytes = self.numel * self.dtype.itemsize
+
+    def set_shape(self, shape):
+        self.shape = shape
         self.numel = np.prod(shape)
         self.nbytes = self.numel * self.dtype.itemsize
 

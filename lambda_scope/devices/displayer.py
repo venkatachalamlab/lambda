@@ -88,16 +88,10 @@ class Displayer:
 
     def set_shape(self, z, y, x):
         self.poller.unregister(self.data_subscriber.socket)
-        self.data_subscriber.socket.close()
 
         self.shape = (z, y, x)
 
-        self.data_subscriber = TimestampedSubscriber(
-            host=self.inbound[0],
-            port=self.inbound[1],
-            shape=self.shape,
-            datatype=self.dtype,
-            bound=self.inbound[2])
+        self.data_subscriber.set_shape(self.shape)
 
         self.mip_image = np.zeros((self.shape[1] + 4 * self.shape[0],
                                    self.shape[2] + 4 * self.shape[0]), np.uint8)

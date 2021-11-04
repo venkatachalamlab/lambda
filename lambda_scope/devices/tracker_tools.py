@@ -32,7 +32,7 @@ class ObjectDetector():
         self.percentile = 1 - self.feat_size / (self.crop_size**2)
 
     def set_crop_size(self, crop_size):
-        if crop_size <= self.shape[1] or crop_size <= self.shape[2]:
+        if crop_size >= self.shape[1] or crop_size >= self.shape[2]:
             self.crop_size = min(self.shape[1], self.shape[2])
         else:
             self.crop_size = crop_size

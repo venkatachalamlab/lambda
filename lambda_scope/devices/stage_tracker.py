@@ -154,8 +154,6 @@ class TrackerDevice():
 
     def set_shape(self, z, y ,x):
         self.poller.unregister(self.data_subscriber.socket)
-        self.data_subscriber.socket.close()
-        self.data_publisher.socket.close()
 
         self.shape = (z, y, x)
         self.tracker.set_shape(z, y, x)
@@ -163,22 +161,11 @@ class TrackerDevice():
 
         self.pid.set_center(self.shape[2] // 2, self.shape[1] // 2)
 
-        self.data_publisher = TimestampedPublisher(
-            host=self.data_out[0],
-            port=self.data_out[1],
-            bound=self.data_out[2],
-            shape=self.shape,
-            datatype=self.dtype)
-
-        port = self.data_in[1] + self.camera_number - 1
-        self.data_subscriber = TimestampedSubscriber(
-            host=self.data_in[0],
-            port=port,
-            bound=self.data_in[2],
-            shape=self.shape,
-            datatype=self.dtype)
+        self.data_subscriber.set_shape(self.shape)
+        self.data_publisher.set_shape(self.shape)
 
         self.poller.register(self.data_subscriber.socket, zmq.POLLIN)
+        self.set_crop_size(self.tracker.crop_size)
         self.publish_status()
 
     def set_feat_size(self, feat_size):
