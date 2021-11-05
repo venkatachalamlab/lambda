@@ -80,7 +80,7 @@ class Displayer:
         cv2.namedWindow(self.name, cv2.WINDOW_NORMAL)
         cv2.resizeWindow(self.name, self.displayer_shape[1], self.displayer_shape[0])
 
-        self.set_lookup_table(lookup_table[0], lookup_table[1])
+        self.set_lookup_table(lookup_table[0], min(lookup_table[1], np.iinfo(self.dtype).max))
 
     def set_lookup_table(self, lut_low, lut_high):
         self.lookup_table = (lut_low, lut_high)
