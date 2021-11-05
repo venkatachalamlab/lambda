@@ -199,8 +199,8 @@ class ZaberController():
 
     def vel_xy(self, xspeed, yspeed):
         """Makes x and y motor to move at specified speeds."""
-        xspeed_data = data_from_vel_xy(xspeed/10)
-        yspeed_data = data_from_vel_xy(yspeed/10)
+        xspeed_data = data_from_vel_xy(xspeed)
+        yspeed_data = data_from_vel_xy(yspeed)
         self.execute(self.serial_obj_xy, "vel", axis=1, speed=yspeed_data)
         self.execute(self.serial_obj_xy, "vel", axis=2, speed=xspeed_data)
 
