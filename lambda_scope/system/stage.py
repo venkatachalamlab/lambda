@@ -16,7 +16,7 @@ Options:
     --format=UINT8_ZYX_22_512_1024      Image format.
                                             [default: UINT8_ZYX_1_512_512]
     --camera=<number>                   1 for camera1, 2 for camera2 and * to run both.
-                                            [default: *]
+                                            [default: 1]
 """
 
 import time
@@ -32,7 +32,6 @@ def execute(job, fmt: str, camera: str):
 
     forwarder_in = '192.168.170.111:5000'
     forwarder_out = '192.168.170.111:5001'
-
 
     saving_mode = "0"
     flir_exposure = "25000"
