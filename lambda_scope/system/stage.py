@@ -16,7 +16,7 @@ Options:
     --format=UINT8_ZYX_22_512_1024      Image format.
                                             [default: UINT8_ZYX_1_512_512]
     --camera=<number>                   1 for camera1, 2 for camera2 and * to run both.
-                                            [default: 1]
+                                            [default: *]
 """
 
 import time
@@ -35,7 +35,7 @@ def execute(job, fmt: str, camera: str):
 
 
     saving_mode = "0"
-    flir_exposure = "10000"
+    flir_exposure = "25000"
     XInputToZMQPub_out = str(6000)
     processor_out = str(6001)
     data_camera_out = 6002
@@ -88,10 +88,9 @@ def execute(job, fmt: str, camera: str):
                           "--commands=" + forwarder_out,
                           "--name=tracking_displayer"]))
 
-    # job.append(Popen(["experiment_runner_v2",
-    #                   "--inbound=L" + forwarder_out,
-    #                   "--outbound=L"+ forwarder_in,
-    #                   "--file_directory=C:/src/venkatachalamlab/software/python/vlab/vlab/devices/microfluidics_devices/"]))
+    job.append(Popen(["lambda_valve_control",
+                      "--commands=" + forwarder_out,
+                      "--status="+ forwarder_in]))
 
     for i, camera_number in enumerate(cameras):
 
