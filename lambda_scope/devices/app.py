@@ -15,7 +15,7 @@ Options:
     --saving_mode=mode                  [default: 0]
     --zyla_camera_trigger_mode=mode     [default: 2]
     --format=format                     [default: UINT16_ZYX_25_512_512]
-    --flir_exposure=exposure            [default: 10000]
+    --flir_exposure=exposure            [default: 25000]
     --zyla_camera=number                [default: *]
 """
 
@@ -152,8 +152,8 @@ class LambdaApp():
         self.bot_microscope_data_shape_y.set("512")
         self.bot_microscope_data_shape_x.set("512")
         self.tracker_camera_source.set("1")
-        self.flir_camera_exposure.set("10000.0")
-        self.flir_camera_rate.set("98.0")
+        self.flir_camera_exposure.set("25000.0")
+        self.flir_camera_rate.set("39.0")
         self.tracker_feature_size.set("2500")
         self.tracker_crop_size.set("300")
         self.z_resolution_in_um.set("1.0")
@@ -286,27 +286,28 @@ class LambdaApp():
         self.tracker_camera_source_entry = tkinter.Entry(
             self.window,
             textvariable=self.tracker_camera_source,
-            width=6
+            width=8,
+            state='disabled'
         )
         self.flir_camera_exposure_entry = tkinter.Entry(
             self.window,
             textvariable=self.flir_camera_exposure,
-            width=6
+            width=8
         )
         self.flir_camera_rate_entry = tkinter.Entry(
             self.window,
             textvariable=self.flir_camera_rate,
-            width=6
+            width=8
         )
         self.tracker_feature_size_entry = tkinter.Entry(
             self.window,
             textvariable=self.tracker_feature_size,
-            width=6
+            width=8
         )
         self.tracker_crop_size_entry = tkinter.Entry(
             self.window,
             textvariable=self.tracker_crop_size,
-            width=6
+            width=8
         )
         self.z_resolution_in_um_entry = tkinter.Entry(
             self.window,
@@ -580,11 +581,6 @@ class LambdaApp():
             self.window,
             text = "Save Current Mode As"
         )
-        # self.console = tkinter.Label(
-        #     self.window,
-        #     text = "Console",
-        #     relief='ridge'
-        # )
 
         self.laser_405_vol_1_entry.bind(
             '<Return>',
@@ -1120,15 +1116,13 @@ class LambdaApp():
 
         x22 = x20 + x21 + self.x_spacing + 10 * self.x_spacing
         x23 = max(
-            # self.save_current_mode_as.winfo_reqwidth(),
+            self.save_current_mode_as.winfo_reqwidth(),
             self.load_predefined_mode.winfo_reqwidth(),
-            0
         )
-        # x24 = self.current_mode_name.winfo_reqwidth()
-        # x25 = max(
-        #     # self.save_button.winfo_reqwidth(),
-        #     self.load_button.winfo_reqwidth(),
-        #     self.command_entry.winfo_reqwidth())
+        x24 = self.current_mode_name.winfo_reqwidth()
+        _ = max(
+            self.load_button.winfo_reqwidth(),
+            self.command_entry.winfo_reqwidth())
 
         self.mode_save_load_set.place(
             x = x22,
@@ -1154,14 +1148,6 @@ class LambdaApp():
             x = x22,
             y = 3 * y1 + 4 * self.y_spacing
         )
-        # self.save_button.place(
-        #     x = x22 + x23 + x24 + 2 * self.x_spacing,
-        #     y = 3 * self.y_spacing + 2 * y1 - 4
-        # )
-        # self.console.place(
-        #     x = x22,
-        #     y = 4 * self.y_spacing + 3 * y1
-        # )
         self.command_entry.place(
             x = self.x_spacing,
             y = 8 * self.y_spacing + 7 * y1
@@ -1390,7 +1376,7 @@ class LambdaApp():
             entry_num = int(current_widget_str[7:])
             if 1 <= entry_num < 36:
                 current_widget.tk_focusNext().focus()
-                if int(str(self.window.focus_get())[7:]) == 20:
+                while self.window.focus_get().cget('state') == 'disabled':
                     self.window.focus_get().tk_focusNext().focus()
 
                 pos = len(str(self.window.focus_get().get))
