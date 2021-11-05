@@ -60,7 +60,7 @@ class TrackerDevice():
         self.out = np.zeros(self.shape, dtype=self.dtype)
 
         self.tracker = ObjectDetector(self.shape)
-        self.pid = PIDController(15.0, 0.0, 0.0,
+        self.pid = PIDController(1.5, 0.0, 0.0,
                                  self.shape[2] // 2, self.shape[1] // 2,
                                  1, 0.025)
 
