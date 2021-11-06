@@ -25,6 +25,7 @@ console_scripts = [
     'lambda_zaber=lambda_scope.devices.zaber:main',
     'lambda_stage_tracker=lambda_scope.devices.stage_tracker:main',
     'lambda_valve_control=lambda_scope.devices.valve_control:main',
+    'lambda_microfluidic=lambda_scope.devices.microfluidic:main',
     'lambda_app=lambda_scope.devices.app:main',
     'lambda_stage=lambda_scope.system.stage:main',
     'lambda=lambda_scope.system.lambda:main'

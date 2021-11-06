@@ -36,7 +36,7 @@ def execute(job, fmt: str, zyla_camera: str):
 
     saving_mode = "0"
     trigger_mode = "2"
-    flir_exposure = "10000"
+    flir_exposure = "25000"
     dragonfly_usb_port = "COM9"
     serial_num_las_daq = "1D3B333"
     serial_num_cam_daq = "1D17835"
@@ -63,9 +63,6 @@ def execute(job, fmt: str, zyla_camera: str):
                       "--flir_camera=*",
                       "--format=" + fmt,
                       "--mode_directory=" + mode_directory]))
-
-    # job.append(Popen(["lambda_client",
-    #                   "--port=" + server]))
 
     job.append(Popen(["lambda_app",
                       "--client_port=" + server,
@@ -95,10 +92,9 @@ def execute(job, fmt: str, zyla_camera: str):
                       "--serial_num_daq1=" + serial_num_las_daq,
                       "--serial_num_daq0=" + serial_num_cam_daq]))
 
-    # job.append(Popen(["experiment_runner_v2",
-    #                   "--inbound=L" + forwarder_out,
-    #                   "--outbound=L"+ forwarder_in,
-    #                   "--file_directory=C:/src/venkatachalamlab/software/python/vlab/vlab/devices/microfluidics_devices/"]))
+    job.append(Popen(["lambda_microfluidic",
+                      "--inbound=L" + obound,
+                      "--outbound=L"+ ibound]))
 
     for i, camera_number in enumerate(zyla_cameras):
 

@@ -50,7 +50,9 @@ class LambdaApp():
         self.window.geometry("{}x{}".format(self.window_width, self.window_height))
         self.window.title("LAMBDA")
         self.mode_filename = os.path.join(os.path.dirname(lambda_scope.__file__),
-                                          "mode", "modes.json")
+                                          "modes", "imaging_modes.json")
+        self.microfluidic_mode_filename = os.path.join(os.path.dirname(lambda_scope.__file__),
+                                                       "modes", "microfluidic_modes.json")
 
         (_, _, shape) = array_props_from_string(fmt)
 
