@@ -1,0 +1,24 @@
+{
+    "np_mf": {
+        "buffer_valve": 1,
+        "control1_valve": 2,
+        "control2_valve": 3,
+        "odor_valves" : [4, 6, 9, 10, 11, 12, 13, 14, 15, 16],
+        "buffer_time": 30,
+        "odor_time": 15,
+        "odor_names" : ["Fluorescein",
+                        "10mM CuSO4", 
+                        "Control", 
+                        "800mM Sorbitol", 
+                        "1uM ascr#3", 
+                        "OP50", 
+                        "e-2 IAA", 
+                        "e-6 IAA", 
+                        "450mM NaCl", 
+                        "75mM NaCl"],
+        "buffer_name" : "diH2O",
+        "initial_time" : 60,
+        "randomized":true,
+        "cycle": 2
+    }
+}
