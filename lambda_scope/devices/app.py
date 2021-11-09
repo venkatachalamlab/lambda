@@ -131,6 +131,46 @@ class LambdaApp():
         self.mode_name_to_load = tkinter.StringVar()
         self.reply = tkinter.StringVar()
 
+        self.cycle = tkinter.StringVar()
+        self.buffer_time = tkinter.StringVar()
+        self.odor_time = tkinter.StringVar()
+        self.initial_time = tkinter.StringVar()
+        self.microfluidic_experiment = tkinter.IntVar()
+        self.randomized_odor = tkinter.IntVar()
+
+        self.buffer_valve_number = tkinter.StringVar()
+        self.control1_valve_number = tkinter.StringVar()
+        self.control2_valve_number = tkinter.StringVar()
+        self.odor1_valve_number = tkinter.StringVar()
+        self.odor2_valve_number = tkinter.StringVar()
+        self.odor3_valve_number = tkinter.StringVar()
+        self.odor4_valve_number = tkinter.StringVar()
+        self.odor5_valve_number = tkinter.StringVar()
+        self.odor6_valve_number = tkinter.StringVar()
+        self.odor7_valve_number = tkinter.StringVar()
+        self.odor8_valve_number = tkinter.StringVar()
+        self.odor9_valve_number = tkinter.StringVar()
+        self.odor10_valve_number = tkinter.StringVar()
+        self.odor11_valve_number = tkinter.StringVar()
+        self.odor12_valve_number = tkinter.StringVar()
+        self.odor13_valve_number = tkinter.StringVar()
+        self.buffer_name = tkinter.StringVar()
+        self.control1_name = tkinter.StringVar()
+        self.control2_name = tkinter.StringVar()
+        self.odor1_name = tkinter.StringVar()
+        self.odor2_name = tkinter.StringVar()
+        self.odor3_name = tkinter.StringVar()
+        self.odor4_name = tkinter.StringVar()
+        self.odor5_name = tkinter.StringVar()
+        self.odor6_name = tkinter.StringVar()
+        self.odor7_name = tkinter.StringVar()
+        self.odor8_name = tkinter.StringVar()
+        self.odor9_name = tkinter.StringVar()
+        self.odor10_name = tkinter.StringVar()
+        self.odor11_name = tkinter.StringVar()
+        self.odor12_name = tkinter.StringVar()
+        self.odor13_name = tkinter.StringVar()
+
         self.laser_405_vol_1.set("0.0")
         self.laser_405_vol_2.set("0.0")
         self.laser_405_vol_3.set("0.0")
@@ -173,6 +213,45 @@ class LambdaApp():
         self.laser_output_repeat.set(0)
         self.bot_microscope_saving_mode.set(0)
         self.reply.set("")
+
+        self.cycle.set("1")
+        self.buffer_time.set("30")
+        self.odor_time.set("15")
+        self.initial_time.set("60")
+        self.microfluidic_experiment.set(0)
+        self.randomized_odor.set(0)
+        self.buffer_valve_number.set("")
+        self.control1_valve_number.set("")
+        self.control2_valve_number.set("")
+        self.odor1_valve_number.set("")
+        self.odor2_valve_number.set("")
+        self.odor3_valve_number.set("")
+        self.odor4_valve_number.set("")
+        self.odor5_valve_number.set("")
+        self.odor6_valve_number.set("")
+        self.odor7_valve_number.set("")
+        self.odor8_valve_number.set("")
+        self.odor9_valve_number.set("")
+        self.odor10_valve_number.set("")
+        self.odor11_valve_number.set("")
+        self.odor12_valve_number.set("")
+        self.odor13_valve_number.set("")
+        self.buffer_name.set("")
+        self.control1_name.set("")
+        self.control2_name.set("")
+        self.odor1_name.set("")
+        self.odor2_name.set("")
+        self.odor3_name.set("")
+        self.odor4_name.set("")
+        self.odor5_name.set("")
+        self.odor6_name.set("")
+        self.odor7_name.set("")
+        self.odor8_name.set("")
+        self.odor9_name.set("")
+        self.odor10_name.set("")
+        self.odor11_name.set("")
+        self.odor12_name.set("")
+        self.odor13_name.set("")
 
         self.laser_405_vol_1_entry = tkinter.Entry(
             self.window,
@@ -370,6 +449,188 @@ class LambdaApp():
             state='disabled',
             width=200,
         )
+        self.cycle_entry = tkinter.Entry(
+            self.window,
+            textvariable=self.cycle,
+            width=5
+        )
+        self.buffer_time_entry = tkinter.Entry(
+            self.window,
+            textvariable=self.buffer_time,
+            width=5
+        )
+        self.odor_time_entry = tkinter.Entry(
+            self.window,
+            textvariable=self.odor_time,
+            width=5
+        )
+        self.initial_time_entry = tkinter.Entry(
+            self.window,
+            textvariable=self.initial_time,
+            width=5
+        )
+        self.buffer_valve_number_entry = tkinter.Entry(
+            self.window,
+            textvariable=self.buffer_valve_number,
+            width=8
+        )
+        self.control1_valve_number_entry = tkinter.Entry(
+            self.window,
+            textvariable=self.control1_valve_number,
+            width=8
+        )
+        self.control2_valve_number_entry = tkinter.Entry(
+            self.window,
+            textvariable=self.control2_valve_number,
+            width=8
+        )
+        self.odor1_valve_number_entr = tkinter.Entry(
+            self.window,
+            textvariable=self.odor1_valve_number,
+            width=8
+        )
+        self.odor2_valve_number_entry = tkinter.Entry(
+            self.window,
+            textvariable=self.odor2_valve_number,
+            width=8
+        )
+        self.odor3_valve_number_entry = tkinter.Entry(
+            self.window,
+            textvariable=self.odor3_valve_number,
+            width=8
+        )
+        self.odor4_valve_number_entry = tkinter.Entry(
+            self.window,
+            textvariable=self.odor4_valve_number,
+            width=8
+        )
+        self.odor5_valve_number_entry = tkinter.Entry(
+            self.window,
+            textvariable=self.odor5_valve_number,
+            width=8
+        )
+        self.odor6_valve_number_entry = tkinter.Entry(
+            self.window,
+            textvariable=self.odor6_valve_number,
+            width=8
+        )
+        self.odor7_valve_number_entry = tkinter.Entry(
+            self.window,
+            textvariable=self.odor7_valve_number,
+            width=8
+        )
+        self.odor8_valve_number_entry = tkinter.Entry(
+            self.window,
+            textvariable=self.odor8_valve_number,
+            width=8
+        )
+        self.odor9_valve_number_entry = tkinter.Entry(
+            self.window,
+            textvariable=self.odor9_valve_number,
+            width=8
+        )
+        self.odor10_valve_number_entry = tkinter.Entry(
+            self.window,
+            textvariable=self.odor10_valve_number,
+            width=8
+        )
+        self.odor11_valve_number_entry = tkinter.Entry(
+            self.window,
+            textvariable=self.odor11_valve_number,
+            width=8
+        )
+        self.odor12_valve_number_entry = tkinter.Entry(
+            self.window,
+            textvariable=self.odor12_valve_number,
+            width=8
+        )
+        self.odor13_valve_number_entry = tkinter.Entry(
+            self.window,
+            textvariable=self.odor13_valve_number,
+            width=8
+        )
+        self.buffer_name_entry = tkinter.Entry(
+            self.window,
+            textvariable=self.buffer_name,
+            width=8
+        )
+        self.control1_name_entry = tkinter.Entry(
+            self.window,
+            textvariable=self.control1_name,
+            width=8
+        )
+        self.control2_name_entry = tkinter.Entry(
+            self.window,
+            textvariable=self.control2_name,
+            width=8
+        )
+        self.odor1_name_entry = tkinter.Entry(
+            self.window,
+            textvariable=self.odor1_name,
+            width=8
+        )
+        self.odor2_name_entry = tkinter.Entry(
+            self.window,
+            textvariable=self.odor2_name,
+            width=8
+        )
+        self.odor3_name_entry = tkinter.Entry(
+            self.window,
+            textvariable=self.odor3_name,
+            width=8
+        )
+        self.odor4_name_entry = tkinter.Entry(
+            self.window,
+            textvariable=self.odor4_name,
+            width=8
+        )
+        self.odor5_name_entry = tkinter.Entry(
+            self.window,
+            textvariable=self.odor5_name,
+            width=8
+        )
+        self.odor6_name_entry = tkinter.Entry(
+            self.window,
+            textvariable=self.odor6_name,
+            width=8
+        )
+        self.odor7_name_entry = tkinter.Entry(
+            self.window,
+            textvariable=self.odor7_name,
+            width=8
+        )
+        self.odor8_name_entry = tkinter.Entry(
+            self.window,
+            textvariable=self.odor8_name,
+            width=8
+        )
+        self.odor9_name_entry = tkinter.Entry(
+            self.window,
+            textvariable=self.odor9_name,
+            width=8
+        )
+        self.odor10_name_entry = tkinter.Entry(
+            self.window,
+            textvariable=self.odor10_name,
+            width=8
+        )
+        self.odor11_name_entry = tkinter.Entry(
+            self.window,
+            textvariable=self.odor11_name,
+            width=8
+        )
+        self.odor12_name_entry = tkinter.Entry(
+            self.window,
+            textvariable=self.odor12_name,
+            width=8
+        )
+        self.odor13_name_entry = tkinter.Entry(
+            self.window,
+            textvariable=self.odor13_name,
+            width=8
+        )
+
+
         self.load_button = tkinter.Menubutton(
             self.window, text="Load", relief='raised'
         )
@@ -379,6 +640,21 @@ class LambdaApp():
             self.window, text="Set Displayed Parameters",
             command=self.set_current_mode_confirmation
         )
+        self.run_button = tkinter.Button(
+            self.window, text="Run",
+            command=self.run
+        )
+        self.stop_button = tkinter.Button(
+            self.window, text="Stop",
+            command=self.stop
+        )
+        self.ready_busy_button = tkinter.Button(
+            self.window,
+            bg="green",
+            state="disabled",
+            width=3
+        )
+
         self.zyla_camera_trigger_mode_radio_button_internal_trigger = tkinter.Radiobutton(
             self.window, text="Internal Trigger",
             variable=self.zyla_camera_trigger_mode, value=1,
@@ -420,6 +696,16 @@ class LambdaApp():
             self.window, text="laser output repeat",
             offvalue=0, onvalue=1,
             variable=self.laser_output_repeat,
+            command=self.update_gui_mode
+        )
+        self.microfluidic_experiment_check_button = tkinter.Checkbutton(
+            self.window, text="Microfluidic Experiment",
+            variable=self.microfluidic_experiment,
+            command=self.update_gui_mode
+        )
+        self.randomized_odor_check_button = tkinter.Checkbutton(
+            self.window, text="Randomize Odor Delivery",
+            variable=self.randomized_odor,
             command=self.update_gui_mode
         )
         self.laser_power_values = tkinter.Label(
@@ -583,6 +869,105 @@ class LambdaApp():
             self.window,
             text = "Save Current Mode As"
         )
+        self.microfluidic_parameters = tkinter.Label(
+            self.window,
+            text = "Microfluidic Parameters",
+            relief='ridge'
+        )
+        self.cycle_label = tkinter.Label(
+            self.window,
+            text = "Cycle"
+        )
+        self.buffer_time_label = tkinter.Label(
+            self.window,
+            text = "Buffer Time"
+        )
+        self.odor_time_label = tkinter.Label(
+            self.window,
+            text = "Odor Time"
+        )
+        self.initial_time_label = tkinter.Label(
+            self.window,
+            text = "Initial Time"
+        )
+        self.odor_info_label = tkinter.Label(
+            self.window,
+            text= "Odor Info.",
+            relief = 'ridge'
+        )
+        self.valve_number_label = tkinter.Label(
+            self.window,
+            text="Valve #"
+        )
+        self.odor_name_label = tkinter.Label(
+            self.window,
+            text="Name"
+        )
+        self.buffer_label = tkinter.Label(
+            self.window,
+            text="Buffer"
+        )
+        self.control1_label = tkinter.Label(
+            self.window,
+            text="Control1"
+        )
+        self.control2_label = tkinter.Label(
+            self.window,
+            text="Control2"
+        )
+        self.odor1_label = tkinter.Label(
+            self.window,
+            text="odor1"
+        )
+        self.odor2_label = tkinter.Label(
+            self.window,
+            text="odor2"
+        )
+        self.odor3_label = tkinter.Label(
+            self.window,
+            text="odor3"
+        )
+        self.odor4_label = tkinter.Label(
+            self.window,
+            text="odor4"
+        )
+        self.odor5_label = tkinter.Label(
+            self.window,
+            text="odor5"
+        )
+        self.odor6_label = tkinter.Label(
+            self.window,
+            text="odor6"
+        )
+        self.odor7_label = tkinter.Label(
+            self.window,
+            text="odor7"
+        )
+        self.odor8_label = tkinter.Label(
+            self.window,
+            text="odor8"
+        )
+        self.odor9_label = tkinter.Label(
+            self.window,
+            text="odor9"
+        )
+        self.odor10_label = tkinter.Label(
+            self.window,
+            text="odor10"
+        )
+        self.odor11_label = tkinter.Label(
+            self.window,
+            text="odor11"
+        )
+        self.odor12_label = tkinter.Label(
+            self.window,
+            text="odor12"
+        )
+        self.odor13_label = tkinter.Label(
+            self.window,
+            text="odor13"
+        )
+
 
         self.laser_405_vol_1_entry.bind(
             '<Return>',
@@ -739,6 +1124,150 @@ class LambdaApp():
         self.command_entry.bind(
             '<Return>',
             lambda _: self.send_command()
+        )
+        self.cycle_entry.bind(
+            '<Return>',
+            lambda _: self.update_gui_mode()
+        )
+        self.buffer_time_entry.bind(
+            '<Return>',
+            lambda _: self.update_gui_mode()
+        )
+        self.odor_time_entry.bind(
+            '<Return>',
+            lambda _: self.update_gui_mode()
+        )
+        self.initial_time_entry.bind(
+            '<Return>',
+            lambda _: self.update_gui_mode()
+        )
+        self.buffer_valve_number_entry.bind(
+            '<Return>',
+            lambda _: self.update_gui_mode()
+        )
+        self.control1_valve_number_entry.bind(
+            '<Return>',
+            lambda _: self.update_gui_mode()
+        )
+        self.control2_valve_number_entry.bind(
+            '<Return>',
+            lambda _: self.update_gui_mode()
+        )
+        self.odor1_valve_number_entr.bind(
+            '<Return>',
+            lambda _: self.update_gui_mode()
+        )
+        self.odor2_valve_number_entry.bind(
+            '<Return>',
+            lambda _: self.update_gui_mode()
+        )
+        self.odor3_valve_number_entry.bind(
+            '<Return>',
+            lambda _: self.update_gui_mode()
+        )
+        self.odor4_valve_number_entry.bind(
+            '<Return>',
+            lambda _: self.update_gui_mode()
+        )
+        self.odor5_valve_number_entry.bind(
+            '<Return>',
+            lambda _: self.update_gui_mode()
+        )
+        self.odor6_valve_number_entry.bind(
+            '<Return>',
+            lambda _: self.update_gui_mode()
+        )
+        self.odor7_valve_number_entry.bind(
+            '<Return>',
+            lambda _: self.update_gui_mode()
+        )
+        self.odor8_valve_number_entry.bind(
+            '<Return>',
+            lambda _: self.update_gui_mode()
+        )
+        self.odor9_valve_number_entry.bind(
+            '<Return>',
+            lambda _: self.update_gui_mode()
+        )
+        self.odor10_valve_number_entry.bind(
+            '<Return>',
+            lambda _: self.update_gui_mode()
+        )
+        self.odor11_valve_number_entry.bind(
+            '<Return>',
+            lambda _: self.update_gui_mode()
+        )
+        self.odor12_valve_number_entry.bind(
+            '<Return>',
+            lambda _: self.update_gui_mode()
+        )
+        self.odor13_valve_number_entry.bind(
+            '<Return>',
+            lambda _: self.update_gui_mode()
+        )
+        self.buffer_name_entry.bind(
+            '<Return>',
+            lambda _: self.update_gui_mode()
+        )
+        self.control1_name_entry.bind(
+            '<Return>',
+            lambda _: self.update_gui_mode()
+        )
+        self.control2_name_entry.bind(
+            '<Return>',
+            lambda _: self.update_gui_mode()
+        )
+        self.odor1_name_entry.bind(
+            '<Return>',
+            lambda _: self.update_gui_mode()
+        )
+        self.odor2_name_entry.bind(
+            '<Return>',
+            lambda _: self.update_gui_mode()
+        )
+        self.odor3_name_entry.bind(
+            '<Return>',
+            lambda _: self.update_gui_mode()
+        )
+        self.odor4_name_entry.bind(
+            '<Return>',
+            lambda _: self.update_gui_mode()
+        )
+        self.odor5_name_entry.bind(
+            '<Return>',
+            lambda _: self.update_gui_mode()
+        )
+        self.odor6_name_entry.bind(
+            '<Return>',
+            lambda _: self.update_gui_mode()
+        )
+        self.odor7_name_entry.bind(
+            '<Return>',
+            lambda _: self.update_gui_mode()
+        )
+        self.odor8_name_entry.bind(
+            '<Return>',
+            lambda _: self.update_gui_mode()
+        )
+        self.odor9_name_entry.bind(
+            '<Return>',
+            lambda _: self.update_gui_mode()
+        )
+        self.odor10_name_entry.bind(
+            '<Return>',
+            lambda _: self.update_gui_mode()
+        )
+        self.odor11_name_entry.bind(
+            '<Return>',
+            lambda _: self.update_gui_mode()
+        )
+        self.odor12_name_entry.bind(
+            '<Return>',
+            lambda _: self.update_gui_mode()
+        )
+        self.odor13_name_entry.bind(
+            '<Return>',
+            lambda _: self.update_gui_mode()
         )
 
         x1 = self.laser_405nm.winfo_reqwidth()
@@ -1053,9 +1582,20 @@ class LambdaApp():
         )
 
         x16 = x13 + x14 + x15 + 2 * self.x_spacing + 10 * self.x_spacing
-        x17 = max(self.zyla_trigger.winfo_reqwidth(),
-                  self.zyla_camera_trigger_mode_radio_button_internal_trigger.winfo_reqwidth(),
-                  self.zyla_camera_trigger_mode_radio_button_external_trigger.winfo_reqwidth())
+        x17 = max(
+            self.zyla_trigger.winfo_reqwidth(),
+            self.zyla_camera_trigger_mode_radio_button_internal_trigger.winfo_reqwidth(),
+            self.zyla_camera_trigger_mode_radio_button_external_trigger.winfo_reqwidth()
+        )
+        x17_2 = max(
+            self.valve_number_label.winfo_reqwidth(),
+            self.odor_name_label.winfo_reqwidth()
+        )
+        x17_3 = max(
+            self.buffer_label.winfo_reqwidth(),
+            self.control1_label.winfo_reqwidth(),
+            self.odor5_label.winfo_reqwidth()
+        )
 
         self.zyla_trigger.place(
             x = x16,
@@ -1068,6 +1608,210 @@ class LambdaApp():
         self.zyla_camera_trigger_mode_radio_button_external_trigger.place(
             x = x16,
             y = 3 * self.y_spacing + 2 * y1
+        )
+        self.odor_info_label.place(
+            x = x16,
+            y = 5 * y1 + 6 * self.y_spacing
+        )
+        self.valve_number_label.place(
+            x = x16,
+            y = 7 * y1 + 8 * self.y_spacing
+        )
+        self.odor_name_label.place(
+            x = x16,
+            y = 8 * y1 + 9 * self.y_spacing
+        )
+        self.buffer_label.place(
+            x = x16 + self.x_spacing + x17_2,
+            y = 6 * y1 + 7 * self.y_spacing
+        )
+        self.control1_label.place(
+            x = x16 + 2 * self.x_spacing + x17_2 + x17_3,
+            y = 6 * y1 + 7 * self.y_spacing
+        )
+        self.control2_label.place(
+            x = x16 + 3 * self.x_spacing + x17_2 + 2 * x17_3,
+            y = 6 * y1 + 7 * self.y_spacing
+        )
+        self.odor1_label.place(
+            x = x16 + 4 * self.x_spacing + x17_2 + 3 * x17_3,
+            y = 6 * y1 + 7 * self.y_spacing
+        )
+        self.odor2_label.place(
+            x = x16 + 5 * self.x_spacing + x17_2 + 4 * x17_3,
+            y = 6 * y1 + 7 * self.y_spacing
+        )
+        self.odor3_label.place(
+            x = x16 + 6 * self.x_spacing + x17_2 + 5 * x17_3,
+            y = 6 * y1 + 7 * self.y_spacing
+        )
+        self.odor4_label.place(
+            x = x16 + 7 * self.x_spacing + x17_2 + 6 * x17_3,
+            y = 6 * y1 + 7 * self.y_spacing
+        )
+        self.odor5_label.place(
+            x = x16 + 8 * self.x_spacing + x17_2 + 7 * x17_3,
+            y = 6 * y1 + 7 * self.y_spacing
+        )
+        self.odor6_label.place(
+            x = x16 + 9 * self.x_spacing + x17_2 + 8 * x17_3,
+            y = 6 * y1 + 7 * self.y_spacing
+        )
+        self.odor7_label.place(
+            x = x16 + 10 * self.x_spacing + x17_2 + 9 * x17_3,
+            y = 6 * y1 + 7 * self.y_spacing
+        )
+        self.odor8_label.place(
+            x = x16 + 11 * self.x_spacing + x17_2 + 10 * x17_3,
+            y = 6 * y1 + 7 * self.y_spacing
+        )
+        self.odor9_label.place(
+            x = x16 + 12 * self.x_spacing + x17_2 + 11 * x17_3,
+            y = 6 * y1 + 7 * self.y_spacing
+        )
+        self.odor10_label.place(
+            x = x16 + 13 * self.x_spacing + x17_2 + 12 * x17_3,
+            y = 6 * y1 + 7 * self.y_spacing
+        )
+        self.odor11_label.place(
+            x = x16 + 14 * self.x_spacing + x17_2 + 13 * x17_3,
+            y = 6 * y1 + 7 * self.y_spacing
+        )
+        self.odor12_label.place(
+            x = x16 + 15 * self.x_spacing + x17_2 + 14 * x17_3,
+            y = 6 * y1 + 7 * self.y_spacing
+        )
+        self.odor13_label.place(
+            x = x16 + 16 * self.x_spacing + x17_2 + 15 * x17_3,
+            y = 6 * y1 + 7 * self.y_spacing
+        )
+        self.buffer_valve_number_entry.place(
+            x = x16 + self.x_spacing + x17_2,
+            y = 7 * y1 + 8 * self.y_spacing
+        )
+        self.control1_valve_number_entry.place(
+            x = x16 + 2 * self.x_spacing + x17_2 + x17_3,
+            y = 7 * y1 + 8 * self.y_spacing
+        )
+        self.control2_valve_number_entry.place(
+            x = x16 + 3 * self.x_spacing + x17_2 + 2 * x17_3,
+            y = 7 * y1 + 8 * self.y_spacing
+        )
+        self.odor1_valve_number_entr.place(
+            x = x16 + 4 * self.x_spacing + x17_2 + 3 * x17_3,
+            y = 7 * y1 + 8 * self.y_spacing
+        )
+        self.odor2_valve_number_entry.place(
+            x = x16 + 5 * self.x_spacing + x17_2 + 4 * x17_3,
+            y = 7 * y1 + 8 * self.y_spacing
+        )
+        self.odor3_valve_number_entry.place(
+            x = x16 + 6 * self.x_spacing + x17_2 + 5 * x17_3,
+            y = 7 * y1 + 8 * self.y_spacing
+        )
+        self.odor4_valve_number_entry.place(
+            x = x16 + 7 * self.x_spacing + x17_2 + 6 * x17_3,
+            y = 7 * y1 + 8 * self.y_spacing
+        )
+        self.odor5_valve_number_entry.place(
+            x = x16 + 8 * self.x_spacing + x17_2 + 7 * x17_3,
+            y = 7 * y1 + 8 * self.y_spacing
+        )
+        self.odor6_valve_number_entry.place(
+            x = x16 + 9 * self.x_spacing + x17_2 + 8 * x17_3,
+            y = 7 * y1 + 8 * self.y_spacing
+        )
+        self.odor7_valve_number_entry.place(
+            x = x16 + 10 * self.x_spacing + x17_2 + 9 * x17_3,
+            y = 7 * y1 + 8 * self.y_spacing
+        )
+        self.odor8_valve_number_entry.place(
+            x = x16 + 11 * self.x_spacing + x17_2 + 10 * x17_3,
+            y = 7 * y1 + 8 * self.y_spacing
+        )
+        self.odor9_valve_number_entry.place(
+            x = x16 + 12 * self.x_spacing + x17_2 + 11 * x17_3,
+            y = 7 * y1 + 8 * self.y_spacing
+        )
+        self.odor10_valve_number_entry.place(
+            x = x16 + 13 * self.x_spacing + x17_2 + 12 * x17_3,
+            y = 7 * y1 + 8 * self.y_spacing
+        )
+        self.odor11_valve_number_entry.place(
+            x = x16 + 14 * self.x_spacing + x17_2 + 13 * x17_3,
+            y = 7 * y1 + 8 * self.y_spacing
+        )
+        self.odor12_valve_number_entry.place(
+            x = x16 + 15 * self.x_spacing + x17_2 + 14 * x17_3,
+            y = 7 * y1 + 8 * self.y_spacing
+        )
+        self.odor13_valve_number_entry.place(
+            x = x16 + 16 * self.x_spacing + x17_2 + 15 * x17_3,
+            y = 7 * y1 + 8 * self.y_spacing
+        )
+        self.buffer_name_entry.place(
+            x = x16 + self.x_spacing + x17_2,
+            y = 8 * y1 + 9 * self.y_spacing
+        )
+        self.control1_name_entry.place(
+            x = x16 + 2 * self.x_spacing + x17_2 + 1 * x17_3,
+            y = 8 * y1 + 9 * self.y_spacing
+        )
+        self.control2_name_entry.place(
+            x = x16 + 3 * self.x_spacing + x17_2 + 2 * x17_3,
+            y = 8 * y1 + 9 * self.y_spacing
+        )
+        self.odor1_name_entry.place(
+            x = x16 + 4 * self.x_spacing + x17_2 + 3 * x17_3,
+            y = 8 * y1 + 9 * self.y_spacing
+        )
+        self.odor2_name_entry.place(
+            x = x16 + 5 * self.x_spacing + x17_2 + 4 * x17_3,
+            y = 8 * y1 + 9 * self.y_spacing
+        )
+        self.odor3_name_entry.place(
+            x = x16 + 6 * self.x_spacing + x17_2 + 5 * x17_3,
+            y = 8 * y1 + 9 * self.y_spacing
+        )
+        self.odor4_name_entry.place(
+            x = x16 + 7 * self.x_spacing + x17_2 + 6 * x17_3,
+            y = 8 * y1 + 9 * self.y_spacing
+        )
+        self.odor5_name_entry.place(
+            x = x16 + 8 * self.x_spacing + x17_2 + 7 * x17_3,
+            y = 8 * y1 + 9 * self.y_spacing
+        )
+        self.odor6_name_entry.place(
+            x = x16 + 9 * self.x_spacing + x17_2 + 8 * x17_3,
+            y = 8 * y1 + 9 * self.y_spacing
+        )
+        self.odor7_name_entry.place(
+            x = x16 + 10 * self.x_spacing + x17_2 + 9 * x17_3,
+            y = 8 * y1 + 9 * self.y_spacing
+        )
+        self.odor8_name_entry.place(
+            x = x16 + 11 * self.x_spacing + x17_2 + 10 * x17_3,
+            y = 8 * y1 + 9 * self.y_spacing
+        )
+        self.odor9_name_entry.place(
+            x = x16 + 12 * self.x_spacing + x17_2 + 11 * x17_3,
+            y = 8 * y1 + 9 * self.y_spacing
+        )
+        self.odor10_name_entry.place(
+            x = x16 + 13 * self.x_spacing + x17_2 + 12 * x17_3,
+            y = 8 * y1 + 9 * self.y_spacing
+        )
+        self.odor11_name_entry.place(
+            x = x16 + 14 * self.x_spacing + x17_2 + 13 * x17_3,
+            y = 8 * y1 + 9 * self.y_spacing
+        )
+        self.odor12_name_entry.place(
+            x = x16 + 15 * self.x_spacing + x17_2 + 14 * x17_3,
+            y = 8 * y1 + 9 * self.y_spacing
+        )
+        self.odor13_name_entry.place(
+            x = x16 + 16 * self.x_spacing + x17_2 + 15 * x17_3,
+            y = 8 * y1 + 9 * self.y_spacing
         )
 
         x18 = x16 + x17 + self.x_spacing + 10 * self.x_spacing
@@ -1114,6 +1858,14 @@ class LambdaApp():
             x = x20,
             y = 4 * self.y_spacing + 3 * y1
         )
+        self.microfluidic_experiment_check_button.place(
+            x = x20,
+            y = 5 * self.y_spacing + 4 * y1
+        )
+        self.randomized_odor_check_button.place(
+            x = x20,
+            y = 6 * self.y_spacing + 5 * y1
+        )
 
 
         x22 = x20 + x21 + self.x_spacing + 10 * self.x_spacing
@@ -1124,7 +1876,8 @@ class LambdaApp():
         x24 = self.current_mode_name.winfo_reqwidth()
         _ = max(
             self.load_button.winfo_reqwidth(),
-            self.command_entry.winfo_reqwidth())
+            self.command_entry.winfo_reqwidth()
+        )
 
         self.mode_save_load_set.place(
             x = x22,
@@ -1159,6 +1912,66 @@ class LambdaApp():
             y = 9 * self.y_spacing + 8 * y1
         )
 
+        x25 = 2 * self.x_spacing + x22 + x24 + x23 + 10 * self.x_spacing
+        x26 = max(
+            self.cycle_label.winfo_reqwidth(),
+            self.buffer_time_label.winfo_reqwidth(),
+            self.odor_time_label.winfo_reqwidth(),
+            self.initial_time_label.winfo_reqwidth()
+        )
+
+        self.microfluidic_parameters.place(
+            x = x25,
+            y = self.y_spacing
+        )
+        self.cycle_label.place(
+            x = x25,
+            y = 2 * self.y_spacing + y1
+        )
+        self.buffer_time_label.place(
+            x = x25,
+            y = 3 * self.y_spacing + 2 * y1
+        )
+        self.odor_time_label.place(
+            x = x25,
+            y = 4 * self.y_spacing + 3 * y1
+        )
+        self.initial_time_label.place(
+            x = x25,
+            y = 5 * self.y_spacing + 4 * y1
+        )
+        self.cycle_entry.place(
+            x = x25 + x26 + self.x_spacing,
+            y = 2 * self.y_spacing + y1
+        )
+        self.buffer_time_entry.place(
+            x = x25 + x26 + self.x_spacing,
+            y = 3 * self.y_spacing + 2 * y1
+        )
+        self.odor_time_entry.place(
+            x = x25 + x26 + self.x_spacing,
+            y = 4 * self.y_spacing + 3 * y1
+        )
+        self.initial_time_entry.place(
+            x = x25 + x26 + self.x_spacing,
+            y = 5 * self.y_spacing + 4 * y1
+        )
+
+        x27 = self.microfluidic_parameters.winfo_reqwidth()
+        x28 = x25 +  x27 + 1 * self.x_spacing + 10 * self.x_spacing
+
+        self.ready_busy_button.place(
+            x = self.window_width - self.ready_busy_button.winfo_reqwidth() - self.x_spacing * 3,
+            y = self.x_spacing * 3
+        )
+        self.run_button.place(
+            x = x28,
+            y = y1 + 2 * self.y_spacing
+        )
+        self.stop_button.place(
+            x = x28,
+            y = 2 * y1 + 3 * self.y_spacing
+        )
 
         self.update_gui_mode()
         self.window.protocol("WM_DELETE_WINDOW", self.shutdown)
@@ -1219,6 +2032,12 @@ class LambdaApp():
         self._update_gui_mode()
         self._save()
         self._compare_modes()
+
+    def run(self):
+        pass
+
+    def stop(self):
+        pass
 
     def _save(self):
         mode_name = self.current_mode_name.get()
