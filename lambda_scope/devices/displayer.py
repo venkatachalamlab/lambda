@@ -111,7 +111,7 @@ class Displayer:
         self.displayer_shape = self.mip_image.shape
         self.poller.register(self.data_subscriber.socket, zmq.POLLIN)
 
-        self.corner_x = int((self.screen_width - self.mip_image[1].shape) / 2 + self.sign * 1.2 * self.mip_image.shape[1])
+        self.corner_x = int((self.screen_width - self.mip_image.shape[1]) / 2 + self.sign * 1.2 * self.mip_image.shape[1])
         self.corner_y = int(self.screen_height - 1.2 * self.mip_image.shape[0])
 
         cv2.namedWindow(self.name)
