@@ -25,6 +25,7 @@ Options:
 """
 
 from typing import Optional, Tuple
+from win32api import GetSystemMetrics
 
 import cv2
 import zmq
@@ -53,6 +54,9 @@ class Displayer:
         self.dtype_max = np.iinfo(self.dtype).max
         self.displayer_shape = self.mip_image.shape
 
+        self.screen_width = GetSystemMetrics(0)
+        self.screen_height = GetSystemMetrics(1)
+
         self.name = name
         self.running = True
         self.inbound = inbound
@@ -77,7 +81,16 @@ class Displayer:
         self.poller.register(self.command_subscriber.socket, zmq.POLLIN)
         self.poller.register(self.data_subscriber.socket, zmq.POLLIN)
 
-        cv2.namedWindow(self.name, cv2.WINDOW_NORMAL)
+        try:
+            self.sign = (-1) ** int(self.name[-1])
+        except:
+            self.sign =  0
+
+        self.corner_x = int((self.screen_width - self.mip_image.shape[1]) / 2 + self.sign * 1.2 * self.mip_image.shape[1])
+        self.corner_y = int(self.screen_height - 1.2 * self.mip_image.shape[0])
+
+        cv2.namedWindow(self.name)
+        cv2.moveWindow(self.name, self.corner_x, self.corner_y)
         cv2.resizeWindow(self.name, self.displayer_shape[1], self.displayer_shape[0])
 
         self.set_lookup_table(lookup_table[0], min(lookup_table[1], np.iinfo(self.dtype).max))
@@ -98,7 +111,11 @@ class Displayer:
         self.displayer_shape = self.mip_image.shape
         self.poller.register(self.data_subscriber.socket, zmq.POLLIN)
 
-        cv2.namedWindow(self.name, cv2.WINDOW_NORMAL)
+        self.corner_x = int((self.screen_width - self.mip_image[1].shape) / 2 + self.sign * 1.2 * self.mip_image.shape[1])
+        self.corner_y = int(self.screen_height - 1.2 * self.mip_image.shape[0])
+
+        cv2.namedWindow(self.name)
+        cv2.moveWindow(self.name, self.corner_x, self.corner_y)
         cv2.resizeWindow(self.name, self.displayer_shape[1], self.displayer_shape[0])
 
     def process(self):
