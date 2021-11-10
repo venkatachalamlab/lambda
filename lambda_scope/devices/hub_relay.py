@@ -77,25 +77,6 @@ class LambdaHub(Hub):
         time.sleep(2) # Necessary
         self._daq_start()
 
-    # def run_mf_exp(self, img_mode, mf_mode):
-    #     """Runs microfluidic experiments"""
-    #     self.set_mode(img_mode)
-    #     time.sleep(5)
-    #     self.start()
-    #     time.sleep(8)
-    #     self._runner_start(mf_mode)
-
-    # def run_np_exp(self):
-    #     """runs the entire sexual dimorphism experiment"""
-    #     self.set_mode("npc")
-    #     time.sleep(5)
-    #     self.start()
-    #     time.sleep(8)
-    #     self.stop()
-    #     time.sleep(2)
-    #     self.run_mf_exp("npa", "np_mf")
-
-
     def stop(self):
         self._zyla_camera_stop()
         time.sleep(2) # Necessary
@@ -461,6 +442,45 @@ class LambdaHub(Hub):
 
     def _microfluidic_device_shutdown(self):
         self.send("microfluidic_device shutdown")
+
+    def _microfluidic_device_set_odor_valve(self, idx, valve_number):
+        self.send("microfluidic_device set_odor_valve {} {}".format(idx, valve_number))
+    
+    def _microfluidic_device_set_odor_name(self, *args):
+        self.send("microfluidic_device set_odor_name " + " ".join(map(str, args)))
+
+    def _microfluidic_device_set_randomness(self, is_random):
+        self.send("microfluidic_device set_randomness {}".format(is_random))
+
+    def _microfluidic_device_set_cycle(self, cycle):
+        self.send("microfluidic_device set_cycle {}".format(cycle))
+
+    def _microfluidic_device_set_initial_time(self, initial_time):
+        self.send("microfluidic_device set_initial_time {}".format(initial_time))
+
+    def _microfluidic_device_set_buffer_time(self, buffer_time):
+        self.send("microfluidic_device set_buffer_time {}".format(buffer_time))
+
+    def _microfluidic_device_set_buffer_name(self, *args):
+        self.send("microfluidic_device set_buffer_name " + " ".join(map(str, args)))
+
+    def _microfluidic_device_set_odor_time(self, odor_time):
+        self.send("microfluidic_device set_odor_time {}".format(odor_time))
+
+    def _microfluidic_device_set_buffer_valve(self, buffer_valve):
+        self.send("microfluidic_device set_buffer_valve {}".format(buffer_valve))
+
+    def _microfluidic_device_set_control1_valve(self, control1_valve):
+        self.send("microfluidic_device set_control1_valve {}".format(control1_valve))
+
+    def _microfluidic_device_set_control2_valve(self, control2_valve):
+        self.send("microfluidic_device set_control2_valve {}".format(control2_valve))
+
+    def _microfluidic_device_set_control1_name(self, *args):
+        self.send("microfluidic_device set_control1_name " + " ".join(map(str, args)))
+
+    def _microfluidic_device_set_control2_name(self, *args):
+        self.send("microfluidic_device set_control2_name " + " ".join(map(str, args)))
 
 def main():
     """This is the hub for lambda."""

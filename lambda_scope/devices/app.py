@@ -29,6 +29,7 @@ from docopt import docopt
 
 import lambda_scope
 from lambda_scope.devices.app_client import Client
+from lambda_scope.devices.top_level_window import OptionBox
 from lambda_scope.devices.utils import array_props_from_string
 
 class LambdaApp():
@@ -49,15 +50,21 @@ class LambdaApp():
         self.y_spacing = 8
         self.window.geometry("{}x{}".format(self.window_width, self.window_height))
         self.window.title("LAMBDA")
-        self.mode_filename = os.path.join(os.path.dirname(lambda_scope.__file__),
-                                          "modes", "imaging_modes.json")
-        self.microfluidic_mode_filename = os.path.join(os.path.dirname(lambda_scope.__file__),
-                                                       "modes", "microfluidic_modes.json")
+        self.imaging_mode_filename = os.path.join(
+            os.path.dirname(lambda_scope.__file__),
+            "modes", "imaging_modes.json"
+        )
+        self.microfluidic_mode_filename = os.path.join(
+            os.path.dirname(lambda_scope.__file__),
+            "modes", "microfluidic_modes.json"
+        )
 
         (_, _, shape) = array_props_from_string(fmt)
 
-        self.gui_mode = {}
-        self.lambda_mode = {}
+        self.gui_imaging_mode = {}
+        self.gui_microfluidic_mode = {}
+        self.lambda_imaging_mode = {}
+        self.lambda_microfluidic_mode = {}
 
         self.cam_num: int
         if zyla_camera == "*":
@@ -65,27 +72,54 @@ class LambdaApp():
         else:
             self.cam_num = int(zyla_camera)
 
-        self.lambda_mode["top_microscope_saving_mode"] = saving_mode
-        self.lambda_mode["bot_microscope_saving_mode"] = saving_mode
-        self.lambda_mode["zyla_camera_trigger_mode"] = zyla_camera_trigger_mode
-        self.lambda_mode["dragonfly_imaging_mode"] = 1
-        self.lambda_mode["top_microscope_data_shape"] = [shape[0], shape[1], shape[2]]
-        self.lambda_mode["z_resolution_in_um"] = 1
-        self.lambda_mode["zyla_camera_exposure_time_in_ms"] = 10
-        self.lambda_mode["laser_power"] = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
-        self.lambda_mode["laser_output_repeat"] = 0
-        self.lambda_mode["filter1"] = 4
-        self.lambda_mode["filter2"] = 4
-        self.lambda_mode["total_volume"] = 1
-        self.lambda_mode["rest_time"] = 0
-        self.lambda_mode["bot_microscope_data_shape"] = [1, 512, 512]
-        self.lambda_mode["tracker_crop_size"] = 300
-        self.lambda_mode["tracker_feature_size"] = 2500
-        self.lambda_mode["tracker_camera_source"] = 1
-        self.lambda_mode["stage_xy_limit"] = 10000
-        self.lambda_mode["flir_camera_exposure_and_rate"] = [flir_exposure, int(1000000 / (1.02 * flir_exposure))]
-        self.lambda_mode["stage_max_velocities"] = [1000, 1000]
+        self.lambda_imaging_mode["top_microscope_saving_mode"] = saving_mode
+        self.lambda_imaging_mode["bot_microscope_saving_mode"] = saving_mode
+        self.lambda_imaging_mode["zyla_camera_trigger_mode"] = zyla_camera_trigger_mode
+        self.lambda_imaging_mode["dragonfly_imaging_mode"] = 1
+        self.lambda_imaging_mode["top_microscope_data_shape"] = [shape[0], shape[1], shape[2]]
+        self.lambda_imaging_mode["z_resolution_in_um"] = 1
+        self.lambda_imaging_mode["zyla_camera_exposure_time_in_ms"] = 10
+        self.lambda_imaging_mode["laser_power"] = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
+        self.lambda_imaging_mode["laser_output_repeat"] = 0
+        self.lambda_imaging_mode["filter1"] = 4
+        self.lambda_imaging_mode["filter2"] = 4
+        self.lambda_imaging_mode["total_volume"] = 1
+        self.lambda_imaging_mode["rest_time"] = 0
+        self.lambda_imaging_mode["bot_microscope_data_shape"] = [1, 512, 512]
+        self.lambda_imaging_mode["tracker_crop_size"] = 300
+        self.lambda_imaging_mode["tracker_feature_size"] = 2500
+        self.lambda_imaging_mode["tracker_camera_source"] = 1
+        self.lambda_imaging_mode["stage_xy_limit"] = 10000
+        self.lambda_imaging_mode["flir_camera_exposure_and_rate"] = [flir_exposure, int(1000000 / (1.02 * flir_exposure))]
+        self.lambda_imaging_mode["stage_max_velocities"] = [1000, 1000]
 
+        self.lambda_microfluidic_mode["cycle"] = 1
+        self.lambda_microfluidic_mode["buffer_time"] = 30.0
+        self.lambda_microfluidic_mode["odor_time"] = 15.0
+        self.lambda_microfluidic_mode["initial_time"] = 60.0
+        self.lambda_microfluidic_mode["randomized"] = 1
+        self.lambda_microfluidic_mode["buffer_valve"] = 1
+        self.lambda_microfluidic_mode["control1_valve"] = 2
+        self.lambda_microfluidic_mode["control2_valve"] = 3
+        self.lambda_microfluidic_mode["odor_valves"] = [4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.lambda_microfluidic_mode["buffer_name"] = ""
+        self.lambda_microfluidic_mode["control1_name"] = ""
+        self.lambda_microfluidic_mode["control2_name"] = ""
+        self.lambda_microfluidic_mode["odor_names"] = [
+            "Fluorescein",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+        ]
 
         self.laser_405_vol_1 = tkinter.StringVar()
         self.laser_405_vol_2 = tkinter.StringVar()
@@ -128,7 +162,8 @@ class LambdaApp():
         self.top_microscope_saving_mode = tkinter.IntVar()
         self.laser_output_repeat = tkinter.IntVar()
         self.bot_microscope_saving_mode = tkinter.IntVar()
-        self.mode_name_to_load = tkinter.StringVar()
+        self.imaging_mode_name_to_load = tkinter.StringVar()
+        self.microfluidic_mode_name_to_load = tkinter.StringVar()
         self.reply = tkinter.StringVar()
 
         self.cycle = tkinter.StringVar()
@@ -215,31 +250,31 @@ class LambdaApp():
         self.reply.set("")
 
         self.cycle.set("1")
-        self.buffer_time.set("30")
-        self.odor_time.set("15")
-        self.initial_time.set("60")
+        self.buffer_time.set("30.0")
+        self.odor_time.set("15.0")
+        self.initial_time.set("60.0")
         self.microfluidic_experiment.set(0)
-        self.randomized_odor.set(0)
-        self.buffer_valve_number.set("")
-        self.control1_valve_number.set("")
-        self.control2_valve_number.set("")
-        self.odor1_valve_number.set("")
-        self.odor2_valve_number.set("")
-        self.odor3_valve_number.set("")
-        self.odor4_valve_number.set("")
-        self.odor5_valve_number.set("")
-        self.odor6_valve_number.set("")
-        self.odor7_valve_number.set("")
-        self.odor8_valve_number.set("")
-        self.odor9_valve_number.set("")
-        self.odor10_valve_number.set("")
-        self.odor11_valve_number.set("")
-        self.odor12_valve_number.set("")
-        self.odor13_valve_number.set("")
+        self.randomized_odor.set(1)
+        self.buffer_valve_number.set("1")
+        self.control1_valve_number.set("2")
+        self.control2_valve_number.set("3")
+        self.odor1_valve_number.set("4")
+        self.odor2_valve_number.set("0")
+        self.odor3_valve_number.set("0")
+        self.odor4_valve_number.set("0")
+        self.odor5_valve_number.set("0")
+        self.odor6_valve_number.set("0")
+        self.odor7_valve_number.set("0")
+        self.odor8_valve_number.set("0")
+        self.odor9_valve_number.set("0")
+        self.odor10_valve_number.set("0")
+        self.odor11_valve_number.set("0")
+        self.odor12_valve_number.set("0")
+        self.odor13_valve_number.set("0")
         self.buffer_name.set("")
         self.control1_name.set("")
         self.control2_name.set("")
-        self.odor1_name.set("")
+        self.odor1_name.set("Fluorescein")
         self.odor2_name.set("")
         self.odor3_name.set("")
         self.odor4_name.set("")
@@ -435,7 +470,11 @@ class LambdaApp():
             textvariable=self.stage_max_velocity_z,
             width=7
         )
-        self.current_mode_name = tkinter.Entry(
+        self.current_imaging_mode_name = tkinter.Entry(
+            self.window,
+            width=15
+        )
+        self.current_microfluidic_mode_name = tkinter.Entry(
             self.window,
             width=15
         )
@@ -452,190 +491,232 @@ class LambdaApp():
         self.cycle_entry = tkinter.Entry(
             self.window,
             textvariable=self.cycle,
+            state='disabled',
             width=5
         )
         self.buffer_time_entry = tkinter.Entry(
             self.window,
             textvariable=self.buffer_time,
+            state='disabled',
             width=5
         )
         self.odor_time_entry = tkinter.Entry(
             self.window,
             textvariable=self.odor_time,
+            state='disabled',
             width=5
         )
         self.initial_time_entry = tkinter.Entry(
             self.window,
             textvariable=self.initial_time,
+            state='disabled',
             width=5
         )
         self.buffer_valve_number_entry = tkinter.Entry(
             self.window,
             textvariable=self.buffer_valve_number,
+            state='disabled',
             width=8
         )
         self.control1_valve_number_entry = tkinter.Entry(
             self.window,
             textvariable=self.control1_valve_number,
+            state='disabled',
             width=8
         )
         self.control2_valve_number_entry = tkinter.Entry(
             self.window,
             textvariable=self.control2_valve_number,
+            state='disabled',
             width=8
         )
-        self.odor1_valve_number_entr = tkinter.Entry(
+        self.odor1_valve_number_entry = tkinter.Entry(
             self.window,
             textvariable=self.odor1_valve_number,
+            state='disabled',
             width=8
         )
         self.odor2_valve_number_entry = tkinter.Entry(
             self.window,
             textvariable=self.odor2_valve_number,
+            state='disabled',
             width=8
         )
         self.odor3_valve_number_entry = tkinter.Entry(
             self.window,
             textvariable=self.odor3_valve_number,
+            state='disabled',
             width=8
         )
         self.odor4_valve_number_entry = tkinter.Entry(
             self.window,
             textvariable=self.odor4_valve_number,
+            state='disabled',
             width=8
         )
         self.odor5_valve_number_entry = tkinter.Entry(
             self.window,
             textvariable=self.odor5_valve_number,
+            state='disabled',
             width=8
         )
         self.odor6_valve_number_entry = tkinter.Entry(
             self.window,
             textvariable=self.odor6_valve_number,
+            state='disabled',
             width=8
         )
         self.odor7_valve_number_entry = tkinter.Entry(
             self.window,
             textvariable=self.odor7_valve_number,
+            state='disabled',
             width=8
         )
         self.odor8_valve_number_entry = tkinter.Entry(
             self.window,
             textvariable=self.odor8_valve_number,
+            state='disabled',
             width=8
         )
         self.odor9_valve_number_entry = tkinter.Entry(
             self.window,
             textvariable=self.odor9_valve_number,
+            state='disabled',
             width=8
         )
         self.odor10_valve_number_entry = tkinter.Entry(
             self.window,
             textvariable=self.odor10_valve_number,
+            state='disabled',
             width=8
         )
         self.odor11_valve_number_entry = tkinter.Entry(
             self.window,
             textvariable=self.odor11_valve_number,
+            state='disabled',
             width=8
         )
         self.odor12_valve_number_entry = tkinter.Entry(
             self.window,
             textvariable=self.odor12_valve_number,
+            state='disabled',
             width=8
         )
         self.odor13_valve_number_entry = tkinter.Entry(
             self.window,
             textvariable=self.odor13_valve_number,
+            state='disabled',
             width=8
         )
         self.buffer_name_entry = tkinter.Entry(
             self.window,
             textvariable=self.buffer_name,
+            state='disabled',
             width=8
         )
         self.control1_name_entry = tkinter.Entry(
             self.window,
             textvariable=self.control1_name,
+            state='disabled',
             width=8
         )
         self.control2_name_entry = tkinter.Entry(
             self.window,
             textvariable=self.control2_name,
+            state='disabled',
             width=8
         )
         self.odor1_name_entry = tkinter.Entry(
             self.window,
             textvariable=self.odor1_name,
+            state='disabled',
             width=8
         )
         self.odor2_name_entry = tkinter.Entry(
             self.window,
             textvariable=self.odor2_name,
+            state='disabled',
             width=8
         )
         self.odor3_name_entry = tkinter.Entry(
             self.window,
             textvariable=self.odor3_name,
+            state='disabled',
             width=8
         )
         self.odor4_name_entry = tkinter.Entry(
             self.window,
             textvariable=self.odor4_name,
+            state='disabled',
             width=8
         )
         self.odor5_name_entry = tkinter.Entry(
             self.window,
             textvariable=self.odor5_name,
+            state='disabled',
             width=8
         )
         self.odor6_name_entry = tkinter.Entry(
             self.window,
             textvariable=self.odor6_name,
+            state='disabled',
             width=8
         )
         self.odor7_name_entry = tkinter.Entry(
             self.window,
             textvariable=self.odor7_name,
+            state='disabled',
             width=8
         )
         self.odor8_name_entry = tkinter.Entry(
             self.window,
             textvariable=self.odor8_name,
+            state='disabled',
             width=8
         )
         self.odor9_name_entry = tkinter.Entry(
             self.window,
             textvariable=self.odor9_name,
+            state='disabled',
             width=8
         )
         self.odor10_name_entry = tkinter.Entry(
             self.window,
             textvariable=self.odor10_name,
+            state='disabled',
             width=8
         )
         self.odor11_name_entry = tkinter.Entry(
             self.window,
             textvariable=self.odor11_name,
+            state='disabled',
             width=8
         )
         self.odor12_name_entry = tkinter.Entry(
             self.window,
             textvariable=self.odor12_name,
+            state='disabled',
             width=8
         )
         self.odor13_name_entry = tkinter.Entry(
             self.window,
             textvariable=self.odor13_name,
+            state='disabled',
             width=8
         )
 
 
-        self.load_button = tkinter.Menubutton(
+        self.imaging_mode_load_button = tkinter.Menubutton(
             self.window, text="Load", relief='raised'
         )
-        self.load_button.menu = tkinter.Menu(self.load_button, tearoff = 0)
-        self.load_button["menu"] = self.load_button.menu
+        self.imaging_mode_load_button.menu = tkinter.Menu(self.imaging_mode_load_button, tearoff = 0)
+        self.imaging_mode_load_button["menu"] = self.imaging_mode_load_button.menu
+        self.microfluidic_mode_load_button = tkinter.Menubutton(
+            self.window, text="Load", relief='raised'
+        )
+        self.microfluidic_mode_load_button.menu = tkinter.Menu(self.microfluidic_mode_load_button, tearoff = 0)
+        self.microfluidic_mode_load_button["menu"] = self.microfluidic_mode_load_button.menu
+
         self.set_mode_button = tkinter.Button(
             self.window, text="Set Displayed Parameters",
             command=self.set_current_mode_confirmation
@@ -651,7 +732,7 @@ class LambdaApp():
         self.ready_busy_button = tkinter.Button(
             self.window,
             bg="green",
-            state="disabled",
+            # state="disabled",
             width=3
         )
 
@@ -861,13 +942,21 @@ class LambdaApp():
             text = "Save/Load/Set Imaging Modes",
             relief='ridge'
         )
-        self.load_predefined_mode = tkinter.Label(
+        self.load_imaging_mode_label = tkinter.Label(
             self.window,
-            text = "Load a Predefined Mode"
+            text = "Load Imaging Mode"
         )
-        self.save_current_mode_as = tkinter.Label(
+        self.load_microfluidic_mode_label = tkinter.Label(
             self.window,
-            text = "Save Current Mode As"
+            text = "Load Microfluidic Mode"
+        )
+        self.save_imaging_mode_label = tkinter.Label(
+            self.window,
+            text = "Save Imaging Mode As"
+        )
+        self.save_microfluidic_mode_label = tkinter.Label(
+            self.window,
+            text = "Save microfluidic Mode As"
         )
         self.microfluidic_parameters = tkinter.Label(
             self.window,
@@ -968,7 +1057,10 @@ class LambdaApp():
             text="odor13"
         )
 
-
+        self.microfluidic_experiment_check_button.bind(
+            '<Button-1>',
+            lambda _: self.switch_microfluidic_experiment_entries()
+        )
         self.laser_405_vol_1_entry.bind(
             '<Return>',
             lambda _: self.update_gui_mode()
@@ -1113,13 +1205,21 @@ class LambdaApp():
             '<Return>',
             lambda _: self.update_gui_mode()
         )
-        self.current_mode_name.bind(
+        self.current_microfluidic_mode_name.bind(
             '<Return>',
-            lambda _: self.save()
+            lambda _: self.save_microfluidic_mode()
         )
-        self.load_button.bind(
+        self.current_imaging_mode_name.bind(
+            '<Return>',
+            lambda _: self.save_imaging_mode()
+        )
+        self.imaging_mode_load_button.bind(
             '<Button-1>',
-            lambda _: self.prepare_load_button()
+            lambda _: self.prepare_imaging_mode_load_button()
+        )
+        self.microfluidic_mode_load_button.bind(
+            '<Button-1>',
+            lambda _: self.prepare_microfluidic_mode_load_button()
         )
         self.command_entry.bind(
             '<Return>',
@@ -1153,7 +1253,7 @@ class LambdaApp():
             '<Return>',
             lambda _: self.update_gui_mode()
         )
-        self.odor1_valve_number_entr.bind(
+        self.odor1_valve_number_entry.bind(
             '<Return>',
             lambda _: self.update_gui_mode()
         )
@@ -1697,7 +1797,7 @@ class LambdaApp():
             x = x16 + 3 * self.x_spacing + x17_2 + 2 * x17_3,
             y = 7 * y1 + 8 * self.y_spacing
         )
-        self.odor1_valve_number_entr.place(
+        self.odor1_valve_number_entry.place(
             x = x16 + 4 * self.x_spacing + x17_2 + 3 * x17_3,
             y = 7 * y1 + 8 * self.y_spacing
         )
@@ -1870,12 +1970,18 @@ class LambdaApp():
 
         x22 = x20 + x21 + self.x_spacing + 10 * self.x_spacing
         x23 = max(
-            self.save_current_mode_as.winfo_reqwidth(),
-            self.load_predefined_mode.winfo_reqwidth(),
+            self.save_imaging_mode_label.winfo_reqwidth(),
+            self.save_microfluidic_mode_label.winfo_reqwidth(),
+            self.load_imaging_mode_label.winfo_reqwidth(),
+            self.load_microfluidic_mode_label.winfo_reqwidth()
         )
-        x24 = self.current_mode_name.winfo_reqwidth()
+        x24 = max(
+            self.current_microfluidic_mode_name.winfo_reqwidth(),
+            self.current_imaging_mode_name.winfo_reqwidth()
+        )
         _ = max(
-            self.load_button.winfo_reqwidth(),
+            self.imaging_mode_load_button.winfo_reqwidth(),
+            self.microfluidic_mode_load_button.winfo_reqwidth(),
             self.command_entry.winfo_reqwidth()
         )
 
@@ -1883,26 +1989,43 @@ class LambdaApp():
             x = x22,
             y = self.y_spacing
         )
-        self.load_predefined_mode.place(
+        self.load_imaging_mode_label.place(
             x = x22,
             y = 2 * self.y_spacing + y1
         )
-        self.save_current_mode_as.place(
+        self.load_microfluidic_mode_label.place(
             x = x22,
-            y = 3 * self.y_spacing + 2 * y1
+            y = 3 * self.y_spacing + 2 *y1
         )
-        self.current_mode_name.place(
+        self.save_imaging_mode_label.place(
+            x = x22,
+            y = 4 * self.y_spacing + 3 * y1
+        )
+        self.save_microfluidic_mode_label.place(
+            x = x22,
+            y = 5 * self.y_spacing + 4 * y1
+        )
+        self.current_imaging_mode_name.place(
             x = x22 + x23 + self.x_spacing,
-            y = 3 * self.y_spacing + 2 * y1
+            y = 4 * self.y_spacing + 3 * y1
         )
-        self.load_button.place(
+        self.current_microfluidic_mode_name.place(
+            x = x22 + x23 + self.x_spacing,
+            y = 5 * self.y_spacing + 4 * y1
+        )
+        self.imaging_mode_load_button.place(
             x = x22 + x23 + self.x_spacing,
             y = y1 + 2 * self.y_spacing - 4
         )
+        self.microfluidic_mode_load_button.place(
+            x = x22 + x23 + self.x_spacing,
+            y = 2 * y1 + 3 * self.y_spacing - 4
+        )
         self.set_mode_button.place(
             x = x22,
-            y = 3 * y1 + 4 * self.y_spacing
+            y = 5 * y1 + 6 * self.y_spacing
         )
+
         self.command_entry.place(
             x = self.x_spacing,
             y = 8 * self.y_spacing + 7 * y1
@@ -1977,31 +2100,55 @@ class LambdaApp():
         self.window.protocol("WM_DELETE_WINDOW", self.shutdown)
         self.window.mainloop()
 
-    def prepare_load_button(self):
-        menu_len = self.load_button.menu.index(tkinter.END)
+    def prepare_imaging_mode_load_button(self):
+        self.ready_busy_button.configure({"bg": "red"})
+        menu_len = self.imaging_mode_load_button.menu.index(tkinter.END)
         if menu_len is not None:
             for _ in range(menu_len+1):
-                self.load_button.menu.delete(0)
+                self.imaging_mode_load_button.menu.delete(0)
 
-        with open(self.mode_filename, 'r') as f:
+        with open(self.imaging_mode_filename, 'r') as f:
             modes_dict = json.load(f)
         mode_names = modes_dict.keys()
 
         for name in mode_names:
-            self.load_button.menu.add_radiobutton(
+            self.imaging_mode_load_button.menu.add_radiobutton(
                 label=name,
-                variable=self.mode_name_to_load,
+                variable=self.imaging_mode_name_to_load,
                 value=name,
-                command=self.load)
+                command=self.load_imaging_mode)
+        self.ready_busy_button.configure({"bg": "green"})
+
+    def prepare_microfluidic_mode_load_button(self):
+        self.ready_busy_button.configure({"bg": "red"})
+        menu_len = self.microfluidic_mode_load_button.menu.index(tkinter.END)
+        if menu_len is not None:
+            for _ in range(menu_len+1):
+                self.microfluidic_mode_load_button.menu.delete(0)
+
+        with open(self.microfluidic_mode_filename, 'r') as f:
+            modes_dict = json.load(f)
+        mode_names = modes_dict.keys()
+
+        for name in mode_names:
+            self.microfluidic_mode_load_button.menu.add_radiobutton(
+                label=name,
+                variable=self.microfluidic_mode_name_to_load,
+                value=name,
+                command=self.load_microfluidic_mode)
+        self.ready_busy_button.configure({"bg": "green"})
 
     def set_current_mode_confirmation(self):
+        self.ready_busy_button.configure({"bg": "red"})
         is_permitted = tkinter.messagebox.askokcancel(
                 'Imaging Mode',
                 'Do you want to set displayed parameters?')
         if is_permitted:
             self.set_current_mode()
+        self.ready_busy_button.configure({"bg": "green"})
 
     def send_command(self):
+        self.ready_busy_button.configure({"bg": "red"})
         req_str = self.command_entry.get()
         if req_str=="":
             tkinter.messagebox.showerror('No Input', 'Command box is empty!')
@@ -2009,39 +2156,117 @@ class LambdaApp():
             self.client.process(req_str)
             self.reply.set(self.client.reply)
             self._change_focus()
+        self.ready_busy_button.configure({"bg": "green"})
 
     def update_gui_mode(self):
+        self.ready_busy_button.configure({"bg": "red"})
         self._update_gui_mode()
         self._change_focus()
         self._compare_modes()
+        self.ready_busy_button.configure({"bg": "green"})
+
+    def load_imaging_mode(self):
+        self.ready_busy_button.configure({"bg": "red"})
+        self._load_imaging_mode()
+        self._update_gui_mode()
+        self._compare_modes()
+        self.imaging_mode_name_to_load.set("")
+        self.ready_busy_button.configure({"bg": "green"})
+
+    def load_microfluidic_mode(self):
+        self.ready_busy_button.configure({"bg": "red"})
+        self._load_microfluidic_mode()
+        self._update_gui_mode()
+        self._compare_modes()
+        self.microfluidic_mode_name_to_load.set("")
+        self.ready_busy_button.configure({"bg": "green"})
 
     def set_current_mode(self):
+        self.ready_busy_button.configure({"bg": "red"})
         self._update_gui_mode()
         self._set_current_mode()
         time.sleep(15)
         self._update_lambda_mode()
         self._compare_modes()
+        self.ready_busy_button.configure({"bg": "green"})
 
-    def load(self):
-        self._load()
-        self._update_gui_mode()
-        self._compare_modes()
-        self.mode_name_to_load.set("")
 
-    def save(self):
+    def save_imaging_mode(self):
+        self.ready_busy_button.configure({"bg": "red"})
         self._update_gui_mode()
-        self._save()
+        self._change_focus()
+        self._save_imaging_mode()
         self._compare_modes()
+        self.ready_busy_button.configure({"bg": "green"})
+
+    def save_microfluidic_mode(self):
+        self.ready_busy_button.configure({"bg": "red"})
+        self._update_gui_mode()
+        self._change_focus()
+        self._save_microfluidic_mode()
+        self._compare_modes()
+        self.ready_busy_button.configure({"bg": "green"})
 
     def run(self):
-        pass
+        self.ready_busy_button.configure({"bg": "red"})
+        if self.microfluidic_experiment.get():
+            options = [
+                "Run Imaging Session Only",
+                "Run Microfluidic Session Only",
+                "Run All",
+                "Cancel"
+            ]
+            rep = OptionBox(self.window,'Run Options', options)
+            if rep == options[0]:
+                self.client.process("DO start")
+            elif rep == options[1]:
+                self.client.process("DO _microfluidic_device_start")
+            elif rep == options[2]:
+                self.client.process("DO start")
+                time.sleep(8)
+                self.client.process("DO _microfluidic_device_start")
+
+        else:
+            options = [
+                "Run Imaging Session",
+                "Cancel"
+            ]
+            rep = OptionBox(self.window,'Stop Options', options)
+            if rep == options[0]:
+                self.client.process("DO stop")
+        self.ready_busy_button.configure({"bg": "green"})
 
     def stop(self):
-        pass
+        self.ready_busy_button.configure({"bg": "red"})
+        if self.microfluidic_experiment.get():
+            options = [
+                "Stop Imaging Session Only",
+                "Stop Microfluidic Session Only",
+                "Stop All",
+                "Cancel"
+            ]
+            rep = OptionBox(self.window,'Stop Options', options)
+            if rep == options[0]:
+                self.client.process("DO stop")
+            elif rep == options[1]:
+                self.client.process("DO _microfluidic_device_stop")
+            elif rep == options[2]:
+                self.client.process("DO stop")
+                self.client.process("DO _microfluidic_device_stop")
 
-    def _save(self):
-        mode_name = self.current_mode_name.get()
-        with open(self.mode_filename, 'r') as f:
+        else:
+            options = [
+                "Stop Imaging Session",
+                "Cancel"
+            ]
+            rep = OptionBox(self.window,'Stop Options', options)
+            if rep == options[0]:
+                self.client.process("DO stop")
+        self.ready_busy_button.configure({"bg": "green"})
+
+    def _save_imaging_mode(self):
+        mode_name = self.current_imaging_mode_name.get()
+        with open(self.imaging_mode_filename, 'r') as f:
             modes_dict = json.load(f)
         mode_names = modes_dict.keys()
 
@@ -2053,8 +2278,8 @@ class LambdaApp():
                 'Overwrite Permission',
                 'A mode with the same name exists, overwrite?')
             if is_permitted:
-                modes_dict[mode_name] = self.gui_mode
-                with open(self.mode_filename, 'w') as outfile:
+                modes_dict[mode_name] = self.gui_imaging_mode
+                with open(self.imaging_mode_filename, 'w') as outfile:
                     json.dump(modes_dict, outfile, indent=4)
                 tkinter.messagebox.showinfo(
                     'Successful Modification',
@@ -2064,14 +2289,44 @@ class LambdaApp():
                 title="Saving Confirmation",
                 message='Do you want to save current parameters as a new mode named {}?'.format(mode_name))
             if is_confirmed:
-                modes_dict[mode_name] = self.gui_mode
-                with open(self.mode_filename, 'w') as outfile:
+                modes_dict[mode_name] = self.gui_imaging_mode
+                with open(self.imaging_mode_filename, 'w') as outfile:
                     json.dump(modes_dict, outfile, indent=4)
                 tkinter.messagebox.showinfo('Successful Save', 'Mode {} is successfully saved!'.format(mode_name))
 
-    def _load(self):
-        mode_name = self.mode_name_to_load.get()
-        with open(self.mode_filename, 'r') as f:
+    def _save_microfluidic_mode(self):
+        mode_name = self.current_microfluidic_mode_name.get()
+        with open(self.microfluidic_mode_filename, 'r') as f:
+            modes_dict = json.load(f)
+        mode_names = modes_dict.keys()
+
+        if mode_name == '':
+            tkinter.messagebox.showerror('Error', 'Mode name is missing!')
+
+        elif mode_name in mode_names:
+            is_permitted = tkinter.messagebox.askokcancel(
+                'Overwrite Permission',
+                'A mode with the same name exists, overwrite?')
+            if is_permitted:
+                modes_dict[mode_name] = self.gui_microfluidic_mode
+                with open(self.microfluidic_mode_filename, 'w') as outfile:
+                    json.dump(modes_dict, outfile, indent=4)
+                tkinter.messagebox.showinfo(
+                    'Successful Modification',
+                    'Mode {} is successfully modified!'.format(mode_name))
+        else:
+            is_confirmed = tkinter.messagebox.askyesno(
+                title="Saving Confirmation",
+                message='Do you want to save current parameters as a new mode named {}?'.format(mode_name))
+            if is_confirmed:
+                modes_dict[mode_name] = self.gui_microfluidic_mode
+                with open(self.microfluidic_mode_filename, 'w') as outfile:
+                    json.dump(modes_dict, outfile, indent=4)
+                tkinter.messagebox.showinfo('Successful Save', 'Mode {} is successfully saved!'.format(mode_name))
+
+    def _load_imaging_mode(self):
+        mode_name = self.imaging_mode_name_to_load.get()
+        with open(self.imaging_mode_filename, 'r') as f:
             modes_dict = json.load(f)
         mode = modes_dict[mode_name]
 
@@ -2117,75 +2372,131 @@ class LambdaApp():
         self.stage_max_velocity_xy.set(mode["stage_max_velocities"][0])
         self.stage_max_velocity_z.set(mode["stage_max_velocities"][1])
 
+
+    def _load_microfluidic_mode(self):
+        mode_name = self.microfluidic_mode_name_to_load.get()
+        with open(self.microfluidic_mode_filename, 'r') as f:
+            modes_dict = json.load(f)
+        mode = modes_dict[mode_name]
+
+        self.cycle.set(mode["cycle"])
+        self.buffer_time.set(mode["buffer_time"])
+        self.odor_time.set(mode["odor_time"])
+        self.initial_time.set(mode["initial_time"])
+        self.buffer_valve_number.set(mode["buffer_valve"])
+        self.buffer_name.set(mode["buffer_name"])
+        self.control1_valve_number.set(mode["control1_valve"])
+        self.control2_valve_number.set(mode["control2_valve"])
+        self.control1_name.set(mode["control1_name"])
+        self.control2_name.set(mode["control2_name"])
+        self.randomized_odor.set(mode["randomized"])
+
+        for idx in range(13):
+            odor_valve_number = self.__getattribute__("odor{}_valve_number".format(idx+1))
+            odor_name = self.__getattribute__("odor{}_name".format(idx+1))
+            odor_valve_number.set(mode["odor_valves"][idx])
+            odor_name.set(mode["odor_names"][idx])
+
     def _set_current_mode(self):
         self.client.process("DO stop")
 
         for i in range(4):
             for j in range(4):
-                self.client.process("DO _daq_set_laser {} {} {}".format(i, self.gui_mode["laser_power"][i][j], j))
-        self.client.process("DO _daq_set_exposure_time {}".format(self.gui_mode["zyla_camera_exposure_time_in_ms"]))
-        self.client.process("DO _daq_set_las_continuous {}".format(self.gui_mode["laser_output_repeat"]))
-        self.client.process("DO _writer_set_saving_mode {}".format(self.gui_mode["top_microscope_saving_mode"]))
-        self.client.process("DO _zyla_camera_set_trigger_mode {}".format(self.gui_mode["zyla_camera_trigger_mode"]))
-        self.client.process("DO _dragonfly_set_imaging_mode {}".format(self.gui_mode["dragonfly_imaging_mode"]))
-        self.client.process("DO _zyla_camera_set_shape {} {} {}".format(self.gui_mode["top_microscope_data_shape"][0],
-                                                                         self.gui_mode["top_microscope_data_shape"][1],
-                                                                         self.gui_mode["top_microscope_data_shape"][2]))
-        self.client.process("DO _writer_set_shape {} {} {}".format(self.gui_mode["top_microscope_data_shape"][0],
-                                                                    self.gui_mode["top_microscope_data_shape"][1],
-                                                                    self.gui_mode["top_microscope_data_shape"][2]))
-        self.client.process("DO _data_hub_set_shape {} {} {}".format(self.gui_mode["top_microscope_data_shape"][0],
-                                                                      self.gui_mode["top_microscope_data_shape"][1],
-                                                                      self.gui_mode["top_microscope_data_shape"][2]))
-        self.client.process("DO _displayer_set_shape {} {} {}".format(self.gui_mode["top_microscope_data_shape"][0],
-                                                                       self.gui_mode["top_microscope_data_shape"][1],
-                                                                       self.gui_mode["top_microscope_data_shape"][2]))
-        self.client.process("DO _daq_set_stack_size {}".format(self.gui_mode["top_microscope_data_shape"][0]))
-        self.client.process("DO _daq_set_voltage_step {}".format(self.gui_mode["z_resolution_in_um"]))
-        self.client.process("DO _dragonfly_set_filter 1 {}".format(self.gui_mode["filter1"]))
-        self.client.process("DO _dragonfly_set_filter 2 {}".format(self.gui_mode["filter2"]))
-        self.client.process("DO _data_hub_set_timer {} {}".format(self.gui_mode["total_volume"], self.gui_mode["rest_time"]))
-        self.client.process("DO _stage_writer_set_saving_mode {}".format(self.gui_mode["bot_microscope_saving_mode"]))
-        self.client.process("DO _tracker_set_feat_size {}".format(self.gui_mode["tracker_feature_size"]))
-        self.client.process("DO _tracker_set_rate {}".format(self.gui_mode["flir_camera_exposure_and_rate"][1]))
-        self.client.process("DO _zaber_set_limit_xy {}".format(self.gui_mode["stage_xy_limit"]))
-        self.client.process("DO _zaber_set_max_velocities {} {}".format(self.gui_mode["stage_max_velocities"][0],
-                                                                         self.gui_mode["stage_max_velocities"][1]))
+                self.client.process("DO _daq_set_laser {} {} {}".format(i, self.gui_imaging_mode["laser_power"][i][j], j))
+        for i in range(13):
+            self.client.process("DO _microfluidic_device_set_odor_valve {} {}".format(i, self.gui_microfluidic_mode["odor_valves"][i]))
+            if self.gui_microfluidic_mode["odor_names"][i] == "":
+                self.client.process("DO _microfluidic_device_set_odor_name {} {}".format(i, "none"))
+            else:
+                self.client.process("DO _microfluidic_device_set_odor_name {} {}".format(i, self.gui_microfluidic_mode["odor_names"][i]))
 
-        exp_diff = abs(float(self.gui_mode["flir_camera_exposure_and_rate"][0])-self.lambda_mode["flir_camera_exposure_and_rate"][0])
-        exp_min = abs(min(float(self.gui_mode["flir_camera_exposure_and_rate"][0]) ,self.lambda_mode["flir_camera_exposure_and_rate"][0]))
+        if self.gui_microfluidic_mode["control1_name"] == "":
+            self.client.process("DO _microfluidic_device_set_control1_name {}".format("none"))
+        else:
+            self.client.process("DO _microfluidic_device_set_control1_name {}".format(self.gui_microfluidic_mode["control1_name"]))
+
+        if self.gui_microfluidic_mode["control2_name"] == "":
+            self.client.process("DO _microfluidic_device_set_control2_name {}".format("none"))
+        else:
+            self.client.process("DO _microfluidic_device_set_control2_name {}".format(self.gui_microfluidic_mode["control2_name"]))
+
+        if self.gui_microfluidic_mode["buffer_name"] == "":
+            self.client.process("DO _microfluidic_device_set_buffer_name {}".format("none"))
+        else:
+            self.client.process("DO _microfluidic_device_set_buffer_name {}".format(self.gui_microfluidic_mode["buffer_name"]))
+
+        self.client.process("DO _microfluidic_device_set_randomness {}".format(self.gui_microfluidic_mode["randomized"]))
+        self.client.process("DO _microfluidic_device_set_cycle {}".format(self.gui_microfluidic_mode["cycle"]))
+        self.client.process("DO _microfluidic_device_set_initial_time {}".format(self.gui_microfluidic_mode["initial_time"]))
+        self.client.process("DO _microfluidic_device_set_buffer_time {}".format(self.gui_microfluidic_mode["buffer_time"]))
+        self.client.process("DO _microfluidic_device_set_odor_time {}".format(self.gui_microfluidic_mode["odor_time"]))
+        self.client.process("DO _microfluidic_device_set_buffer_valve {}".format(self.gui_microfluidic_mode["buffer_valve"]))
+        self.client.process("DO _microfluidic_device_set_control1_valve {}".format(self.gui_microfluidic_mode["control1_valve"]))
+        self.client.process("DO _microfluidic_device_set_control2_valve {}".format(self.gui_microfluidic_mode["control2_valve"]))
+
+        self.client.process("DO _daq_set_exposure_time {}".format(self.gui_imaging_mode["zyla_camera_exposure_time_in_ms"]))
+        self.client.process("DO _daq_set_las_continuous {}".format(self.gui_imaging_mode["laser_output_repeat"]))
+        self.client.process("DO _writer_set_saving_mode {}".format(self.gui_imaging_mode["top_microscope_saving_mode"]))
+        self.client.process("DO _zyla_camera_set_trigger_mode {}".format(self.gui_imaging_mode["zyla_camera_trigger_mode"]))
+        self.client.process("DO _dragonfly_set_imaging_mode {}".format(self.gui_imaging_mode["dragonfly_imaging_mode"]))
+        self.client.process("DO _zyla_camera_set_shape {} {} {}".format(self.gui_imaging_mode["top_microscope_data_shape"][0],
+                                                                         self.gui_imaging_mode["top_microscope_data_shape"][1],
+                                                                         self.gui_imaging_mode["top_microscope_data_shape"][2]))
+        self.client.process("DO _writer_set_shape {} {} {}".format(self.gui_imaging_mode["top_microscope_data_shape"][0],
+                                                                    self.gui_imaging_mode["top_microscope_data_shape"][1],
+                                                                    self.gui_imaging_mode["top_microscope_data_shape"][2]))
+        self.client.process("DO _data_hub_set_shape {} {} {}".format(self.gui_imaging_mode["top_microscope_data_shape"][0],
+                                                                      self.gui_imaging_mode["top_microscope_data_shape"][1],
+                                                                      self.gui_imaging_mode["top_microscope_data_shape"][2]))
+        self.client.process("DO _displayer_set_shape {} {} {}".format(self.gui_imaging_mode["top_microscope_data_shape"][0],
+                                                                       self.gui_imaging_mode["top_microscope_data_shape"][1],
+                                                                       self.gui_imaging_mode["top_microscope_data_shape"][2]))
+        self.client.process("DO _daq_set_stack_size {}".format(self.gui_imaging_mode["top_microscope_data_shape"][0]))
+        self.client.process("DO _daq_set_voltage_step {}".format(self.gui_imaging_mode["z_resolution_in_um"]))
+        self.client.process("DO _dragonfly_set_filter 1 {}".format(self.gui_imaging_mode["filter1"]))
+        self.client.process("DO _dragonfly_set_filter 2 {}".format(self.gui_imaging_mode["filter2"]))
+        self.client.process("DO _data_hub_set_timer {} {}".format(self.gui_imaging_mode["total_volume"], self.gui_imaging_mode["rest_time"]))
+        self.client.process("DO _stage_writer_set_saving_mode {}".format(self.gui_imaging_mode["bot_microscope_saving_mode"]))
+        self.client.process("DO _tracker_set_feat_size {}".format(self.gui_imaging_mode["tracker_feature_size"]))
+        self.client.process("DO _tracker_set_rate {}".format(self.gui_imaging_mode["flir_camera_exposure_and_rate"][1]))
+        self.client.process("DO _zaber_set_limit_xy {}".format(self.gui_imaging_mode["stage_xy_limit"]))
+        self.client.process("DO _zaber_set_max_velocities {} {}".format(self.gui_imaging_mode["stage_max_velocities"][0],
+                                                                         self.gui_imaging_mode["stage_max_velocities"][1]))
+
+        exp_diff = abs(float(self.gui_imaging_mode["flir_camera_exposure_and_rate"][0])-self.lambda_imaging_mode["flir_camera_exposure_and_rate"][0])
+        exp_min = abs(min(float(self.gui_imaging_mode["flir_camera_exposure_and_rate"][0]) ,self.lambda_imaging_mode["flir_camera_exposure_and_rate"][0]))
         exp_ratio = exp_diff / exp_min
-        fps_diff = abs(float(self.gui_mode["flir_camera_exposure_and_rate"][1])-self.lambda_mode["flir_camera_exposure_and_rate"][1])
-        fps_min = abs(min(float(self.gui_mode["flir_camera_exposure_and_rate"][1]) ,self.lambda_mode["flir_camera_exposure_and_rate"][1]))
+        fps_diff = abs(float(self.gui_imaging_mode["flir_camera_exposure_and_rate"][1])-self.lambda_imaging_mode["flir_camera_exposure_and_rate"][1])
+        fps_min = abs(min(float(self.gui_imaging_mode["flir_camera_exposure_and_rate"][1]) ,self.lambda_imaging_mode["flir_camera_exposure_and_rate"][1]))
         fps_ratio = fps_diff / fps_min
 
-        if self.gui_mode["bot_microscope_data_shape"][0] != self.lambda_mode["bot_microscope_data_shape"][0] or \
-        self.gui_mode["bot_microscope_data_shape"][1] != self.lambda_mode["bot_microscope_data_shape"][1] or \
-        self.gui_mode["bot_microscope_data_shape"][2] != self.lambda_mode["bot_microscope_data_shape"][2] or \
-        self.gui_mode["tracker_camera_source"] != self.lambda_mode["tracker_camera_source"] or \
+        if self.gui_imaging_mode["bot_microscope_data_shape"][0] != self.lambda_imaging_mode["bot_microscope_data_shape"][0] or \
+        self.gui_imaging_mode["bot_microscope_data_shape"][1] != self.lambda_imaging_mode["bot_microscope_data_shape"][1] or \
+        self.gui_imaging_mode["bot_microscope_data_shape"][2] != self.lambda_imaging_mode["bot_microscope_data_shape"][2] or \
+        self.gui_imaging_mode["tracker_camera_source"] != self.lambda_imaging_mode["tracker_camera_source"] or \
         exp_ratio > 0.04 or fps_ratio > 0.04:
             self.client.process("DO _flir_camera_stop")
             time.sleep(1)
-            self.client.process("DO _tracker_set_camera_number {}".format(self.gui_mode["tracker_camera_source"]))
-            self.client.process("DO _stage_data_hub_set_shape {} {} {}".format(self.gui_mode["bot_microscope_data_shape"][0],
-                                                                               self.gui_mode["bot_microscope_data_shape"][1],
-                                                                               self.gui_mode["bot_microscope_data_shape"][2]))
-            self.client.process("DO _tracker_set_shape {} {} {}".format(self.gui_mode["bot_microscope_data_shape"][0],
-                                                                        self.gui_mode["bot_microscope_data_shape"][1],
-                                                                        self.gui_mode["bot_microscope_data_shape"][2]))
-            self.client.process("DO _stage_writer_set_shape {} {} {}".format(self.gui_mode["bot_microscope_data_shape"][0],
-                                                                             self.gui_mode["bot_microscope_data_shape"][1],
-                                                                             self.gui_mode["bot_microscope_data_shape"][2]))
-            self.client.process("DO _stage_displayer_set_shape {} {} {}".format(self.gui_mode["bot_microscope_data_shape"][0],
-                                                                                self.gui_mode["bot_microscope_data_shape"][1],
-                                                                                self.gui_mode["bot_microscope_data_shape"][2]))
-            self.client.process("DO _flir_camera_set_height {}".format(self.gui_mode["bot_microscope_data_shape"][1]))
-            self.client.process("DO _flir_camera_set_width {}".format(self.gui_mode["bot_microscope_data_shape"][2]))
-            self.client.process("DO _flir_camera_set_exposure {} {}".format(self.gui_mode["flir_camera_exposure_and_rate"][0],
-                                                                            self.gui_mode["flir_camera_exposure_and_rate"][1]))
+            self.client.process("DO _tracker_set_camera_number {}".format(self.gui_imaging_mode["tracker_camera_source"]))
+            self.client.process("DO _stage_data_hub_set_shape {} {} {}".format(self.gui_imaging_mode["bot_microscope_data_shape"][0],
+                                                                               self.gui_imaging_mode["bot_microscope_data_shape"][1],
+                                                                               self.gui_imaging_mode["bot_microscope_data_shape"][2]))
+            self.client.process("DO _tracker_set_shape {} {} {}".format(self.gui_imaging_mode["bot_microscope_data_shape"][0],
+                                                                        self.gui_imaging_mode["bot_microscope_data_shape"][1],
+                                                                        self.gui_imaging_mode["bot_microscope_data_shape"][2]))
+            self.client.process("DO _stage_writer_set_shape {} {} {}".format(self.gui_imaging_mode["bot_microscope_data_shape"][0],
+                                                                             self.gui_imaging_mode["bot_microscope_data_shape"][1],
+                                                                             self.gui_imaging_mode["bot_microscope_data_shape"][2]))
+            self.client.process("DO _stage_displayer_set_shape {} {} {}".format(self.gui_imaging_mode["bot_microscope_data_shape"][0],
+                                                                                self.gui_imaging_mode["bot_microscope_data_shape"][1],
+                                                                                self.gui_imaging_mode["bot_microscope_data_shape"][2]))
+            self.client.process("DO _flir_camera_set_height {}".format(self.gui_imaging_mode["bot_microscope_data_shape"][1]))
+            self.client.process("DO _flir_camera_set_width {}".format(self.gui_imaging_mode["bot_microscope_data_shape"][2]))
+            self.client.process("DO _flir_camera_set_exposure {} {}".format(self.gui_imaging_mode["flir_camera_exposure_and_rate"][0],
+                                                                            self.gui_imaging_mode["flir_camera_exposure_and_rate"][1]))
             time.sleep(1)
             self.client.process("DO _flir_camera_start")
-        self.client.process("DO _tracker_set_crop_size {}".format(self.gui_mode["tracker_crop_size"]))
+        self.client.process("DO _tracker_set_crop_size {}".format(self.gui_imaging_mode["tracker_crop_size"]))
 
     def _change_focus(self):
         current_widget = self.window.focus_get()
@@ -2195,28 +2506,30 @@ class LambdaApp():
 
         if current_widget_str[:7] == ".!entry":
             entry_num = int(current_widget_str[7:])
-            if 1 <= entry_num < 36:
+            if 1 <= entry_num < 76:
                 current_widget.tk_focusNext().focus()
                 while self.window.focus_get().cget('state') == 'disabled':
                     self.window.focus_get().tk_focusNext().focus()
-
-                pos = len(str(self.window.focus_get().get))
-                self.window.focus_get().icursor(pos)
+                if str(self.window.focus_get())[:7] != ".!entry":
+                    self.window.focus_set()
+                else:
+                    pos = len(str(self.window.focus_get().get))
+                    self.window.focus_get().icursor(pos)
             else:
                 self.window.focus_set()
         else:
             self.window.focus_set()
 
     def _update_gui_mode(self):
-        self.gui_mode["top_microscope_saving_mode"] = self.top_microscope_saving_mode.get()
-        self.gui_mode["zyla_camera_trigger_mode"] = self.zyla_camera_trigger_mode.get()
-        self.gui_mode["dragonfly_imaging_mode"] = self.dragonfly_imaging_mode.get()
-        self.gui_mode["top_microscope_data_shape"] = [int(self.top_microscope_data_shape_z.get()),
+        self.gui_imaging_mode["top_microscope_saving_mode"] = self.top_microscope_saving_mode.get()
+        self.gui_imaging_mode["zyla_camera_trigger_mode"] = self.zyla_camera_trigger_mode.get()
+        self.gui_imaging_mode["dragonfly_imaging_mode"] = self.dragonfly_imaging_mode.get()
+        self.gui_imaging_mode["top_microscope_data_shape"] = [int(self.top_microscope_data_shape_z.get()),
                                                       int(self.top_microscope_data_shape_y.get()),
                                                       int(self.top_microscope_data_shape_x.get())]
-        self.gui_mode["z_resolution_in_um"] = float(self.z_resolution_in_um.get())
-        self.gui_mode["zyla_camera_exposure_time_in_ms"] = float(self.zyla_camera_exposure_time_in_ms.get())
-        self.gui_mode["laser_power"] = [[float(self.laser_405_vol_1.get()), float(self.laser_405_vol_2.get()),
+        self.gui_imaging_mode["z_resolution_in_um"] = float(self.z_resolution_in_um.get())
+        self.gui_imaging_mode["zyla_camera_exposure_time_in_ms"] = float(self.zyla_camera_exposure_time_in_ms.get())
+        self.gui_imaging_mode["laser_power"] = [[float(self.laser_405_vol_1.get()), float(self.laser_405_vol_2.get()),
                                          float(self.laser_405_vol_3.get()), float(self.laser_405_vol_4.get())],
                                         [float(self.laser_488_vol_1.get()), float(self.laser_488_vol_2.get()),
                                          float(self.laser_488_vol_3.get()), float(self.laser_488_vol_4.get())],
@@ -2224,358 +2537,658 @@ class LambdaApp():
                                          float(self.laser_561_vol_3.get()), float(self.laser_561_vol_4.get())],
                                         [float(self.laser_640_vol_1.get()), float(self.laser_640_vol_2.get()),
                                          float(self.laser_640_vol_3.get()), float(self.laser_640_vol_4.get())]]
-        self.gui_mode["laser_output_repeat"] = self.laser_output_repeat.get()
-        self.gui_mode["filter1"] = int(self.filter1.get())
-        self.gui_mode["filter2"] = int(self.filter2.get())
-        self.gui_mode["total_volume"] = int(self.total_volume.get())
-        self.gui_mode["rest_time"] = int(self.rest_time.get())
-        self.gui_mode["bot_microscope_data_shape"] = [int(self.bot_microscope_data_shape_z.get()),
+        self.gui_imaging_mode["laser_output_repeat"] = self.laser_output_repeat.get()
+        self.gui_imaging_mode["filter1"] = int(self.filter1.get())
+        self.gui_imaging_mode["filter2"] = int(self.filter2.get())
+        self.gui_imaging_mode["total_volume"] = int(self.total_volume.get())
+        self.gui_imaging_mode["rest_time"] = int(self.rest_time.get())
+        self.gui_imaging_mode["bot_microscope_data_shape"] = [int(self.bot_microscope_data_shape_z.get()),
                                                       int(self.bot_microscope_data_shape_y.get()),
                                                       int(self.bot_microscope_data_shape_x.get())]
-        self.gui_mode["bot_microscope_saving_mode"] = self.bot_microscope_saving_mode.get()
-        self.gui_mode["tracker_crop_size"] = int(self.tracker_crop_size.get())
-        self.gui_mode["tracker_feature_size"] = int(self.tracker_feature_size.get())
-        self.gui_mode["tracker_camera_source"] = int(self.tracker_camera_source.get())
-        self.gui_mode["stage_xy_limit"] = float(self.stage_xy_limit.get())
-        self.gui_mode["flir_camera_exposure_and_rate"] = [float(self.flir_camera_exposure.get()),
+        self.gui_imaging_mode["bot_microscope_saving_mode"] = self.bot_microscope_saving_mode.get()
+        self.gui_imaging_mode["tracker_crop_size"] = int(self.tracker_crop_size.get())
+        self.gui_imaging_mode["tracker_feature_size"] = int(self.tracker_feature_size.get())
+        self.gui_imaging_mode["tracker_camera_source"] = int(self.tracker_camera_source.get())
+        self.gui_imaging_mode["stage_xy_limit"] = float(self.stage_xy_limit.get())
+        self.gui_imaging_mode["flir_camera_exposure_and_rate"] = [float(self.flir_camera_exposure.get()),
                                                           float(self.flir_camera_rate.get())]
-        self.gui_mode["stage_max_velocities"] = [float(self.stage_max_velocity_xy.get()),
+        self.gui_imaging_mode["stage_max_velocities"] = [float(self.stage_max_velocity_xy.get()),
                                                  float(self.stage_max_velocity_z.get())]
+        self.gui_microfluidic_mode["cycle"] = int(self.cycle.get())
+        self.gui_microfluidic_mode["buffer_time"] = float(self.buffer_time.get())
+        self.gui_microfluidic_mode["odor_time"] = float(self.odor_time.get())
+        self.gui_microfluidic_mode["initial_time"] = float(self.initial_time.get())
+        self.gui_microfluidic_mode["buffer_valve"] = int(self.buffer_valve_number.get())
+        self.gui_microfluidic_mode["buffer_name"] = self.buffer_name.get()
+        self.gui_microfluidic_mode["control1_valve"] = int(self.control1_valve_number.get())
+        self.gui_microfluidic_mode["control2_valve"] = int(self.control2_valve_number.get())
+        self.gui_microfluidic_mode["randomized"] = int(self.randomized_odor.get())
+        self.gui_microfluidic_mode["control1_name"] = self.control1_name.get()
+        self.gui_microfluidic_mode["control2_name"] = self.control2_name.get()
+        
+        odor_valves = [] 
+        odor_names = []
+        for idx in range(13):
+            
+            odor_valve_number = self.__getattribute__(
+                "odor{}_valve_number".format(idx+1)
+            ).get()
+            odor_name = self.__getattribute__(
+                "odor{}_name".format(idx+1)
+            ).get()
+            if odor_valve_number != "":
+                odor_valves.append(int(odor_valve_number))
+            else:
+                odor_valves.append(0)
+            odor_names.append(odor_name)
+        self.gui_microfluidic_mode["odor_names"] = odor_names
+        self.gui_microfluidic_mode["odor_valves"] = odor_valves
 
     def _update_lambda_mode(self):
         try:
             self.client.process("GET writer{}".format(self.cam_num))
             rep = eval(self.client.reply)
-            self.lambda_mode["top_microscope_saving_mode"] = int(rep["saving"])
+            self.lambda_imaging_mode["top_microscope_saving_mode"] = int(rep["saving"])
         except Exception as e:
             print("Error from top writer: {}".format(e))
-            self.lambda_mode["top_microscope_saving_mode"] = -1
+            self.lambda_imaging_mode["top_microscope_saving_mode"] = -1
 
         try:
             self.client.process("GET stage_writer1")
             rep = eval(self.client.reply)
-            self.lambda_mode["bot_microscope_saving_mode"] = int(rep["saving"])
-            self.lambda_mode["bot_microscope_data_shape"] = rep["shape"]
+            self.lambda_imaging_mode["bot_microscope_saving_mode"] = int(rep["saving"])
+            self.lambda_imaging_mode["bot_microscope_data_shape"] = rep["shape"]
         except Exception as e:
             print("Error from bot writer: {}".format(e))
-            self.lambda_mode["bot_microscope_saving_mode"] = -1
-            self.lambda_mode["bot_microscope_data_shape"] = [1, -1, -1]
+            self.lambda_imaging_mode["bot_microscope_saving_mode"] = -1
+            self.lambda_imaging_mode["bot_microscope_data_shape"] = [1, -1, -1]
 
         try:
             self.client.process("GET ZylaCamera{}".format(self.cam_num))
             rep = eval(self.client.reply)
             if rep["trigger"] == "External":
-                self.lambda_mode["zyla_camera_trigger_mode"] = 2
+                self.lambda_imaging_mode["zyla_camera_trigger_mode"] = 2
             elif rep["trigger"] == "Internal":
-                self.lambda_mode["zyla_camera_trigger_mode"] = 1
-            self.lambda_mode["top_microscope_data_shape"] = rep["shape"]
+                self.lambda_imaging_mode["zyla_camera_trigger_mode"] = 1
+            self.lambda_imaging_mode["top_microscope_data_shape"] = rep["shape"]
         except Exception as e:
             print("Error from zyla camera: {}".format(e))
-            self.lambda_mode["zyla_camera_trigger_mode"] = -1
-            self.lambda_mode["top_microscope_data_shape"] = [-1, -1, -1]
+            self.lambda_imaging_mode["zyla_camera_trigger_mode"] = -1
+            self.lambda_imaging_mode["top_microscope_data_shape"] = [-1, -1, -1]
 
         try:
             self.client.process("GET dragonfly")
             rep = eval(self.client.reply)
             if rep["Pinhole Size"] == "NA":
-                self.lambda_mode["dragonfly_imaging_mode"] = 1
+                self.lambda_imaging_mode["dragonfly_imaging_mode"] = 1
             elif rep["Pinhole Size"] == "40um":
-                self.lambda_mode["dragonfly_imaging_mode"] = 2
+                self.lambda_imaging_mode["dragonfly_imaging_mode"] = 2
             elif rep["Pinhole Size"] == "25um":
-                self.lambda_mode["dragonfly_imaging_mode"] = 3
-            self.lambda_mode["filter1"] = int(rep["filter_1"])
-            self.lambda_mode["filter2"] = int(rep["filter_2"])
+                self.lambda_imaging_mode["dragonfly_imaging_mode"] = 3
+            self.lambda_imaging_mode["filter1"] = int(rep["filter_1"])
+            self.lambda_imaging_mode["filter2"] = int(rep["filter_2"])
         except Exception as e:
             print("Error from dragonfly: {}".format(e))
-            self.lambda_mode["dragonfly_imaging_mode"] = -1
-            self.lambda_mode["filter1"] = -1
-            self.lambda_mode["filter2"] = -1
+            self.lambda_imaging_mode["dragonfly_imaging_mode"] = -1
+            self.lambda_imaging_mode["filter1"] = -1
+            self.lambda_imaging_mode["filter2"] = -1
 
         try:
             self.client.process("GET daq")
             rep = eval(self.client.reply)
-            self.lambda_mode["z_resolution_in_um"] = float(rep["voltage_step"]) * 10
-            self.lambda_mode["zyla_camera_exposure_time_in_ms"] = float(rep["exposure_time"])
-            self.lambda_mode["laser_power"][0] = get_array_from_str(rep["405nm"])
-            self.lambda_mode["laser_power"][1] = get_array_from_str(rep["488nm"])
-            self.lambda_mode["laser_power"][2] = get_array_from_str(rep["561nm"])
-            self.lambda_mode["laser_power"][3] = get_array_from_str(rep["640nm"])
-            self.lambda_mode["laser_output_repeat"] = int(rep["laser_output_repeat"])
+            self.lambda_imaging_mode["z_resolution_in_um"] = float(rep["voltage_step"]) * 10
+            self.lambda_imaging_mode["zyla_camera_exposure_time_in_ms"] = float(rep["exposure_time"])
+            self.lambda_imaging_mode["laser_power"][0] = get_array_from_str(rep["405nm"])
+            self.lambda_imaging_mode["laser_power"][1] = get_array_from_str(rep["488nm"])
+            self.lambda_imaging_mode["laser_power"][2] = get_array_from_str(rep["561nm"])
+            self.lambda_imaging_mode["laser_power"][3] = get_array_from_str(rep["640nm"])
+            self.lambda_imaging_mode["laser_output_repeat"] = int(rep["laser_output_repeat"])
         except Exception as e:
             print("Error from acquisition board: {}".format(e))
-            self.lambda_mode["z_resolution_in_um"] = -1
-            self.lambda_mode["zyla_camera_exposure_time_in_ms"] = -1
-            self.lambda_mode["laser_power"][0] = [-1, -1, -1, -1]
-            self.lambda_mode["laser_power"][1] = [-1, -1, -1, -1]
-            self.lambda_mode["laser_power"][2] = [-1, -1, -1, -1]
-            self.lambda_mode["laser_power"][3] = [-1, -1, -1, -1]
-            self.lambda_mode["laser_output_repeat"] = -1
+            self.lambda_imaging_mode["z_resolution_in_um"] = -1
+            self.lambda_imaging_mode["zyla_camera_exposure_time_in_ms"] = -1
+            self.lambda_imaging_mode["laser_power"][0] = [-1, -1, -1, -1]
+            self.lambda_imaging_mode["laser_power"][1] = [-1, -1, -1, -1]
+            self.lambda_imaging_mode["laser_power"][2] = [-1, -1, -1, -1]
+            self.lambda_imaging_mode["laser_power"][3] = [-1, -1, -1, -1]
+            self.lambda_imaging_mode["laser_output_repeat"] = -1
 
         try:
             self.client.process("GET data_hub{}".format(self.cam_num))
             rep = eval(self.client.reply)
-            self.lambda_mode["total_volume"] = int(rep["total_volume"])
-            self.lambda_mode["rest_time"] = int(rep["rest_time"])
+            self.lambda_imaging_mode["total_volume"] = int(rep["total_volume"])
+            self.lambda_imaging_mode["rest_time"] = int(rep["rest_time"])
         except Exception as e:
             print("Error from top data hub: {}".format(e))
-            self.lambda_mode["total_volume"] = -1
-            self.lambda_mode["rest_time"] = -1
+            self.lambda_imaging_mode["total_volume"] = -1
+            self.lambda_imaging_mode["rest_time"] = -1
 
         try:
             self.client.process("GET FlirCamera1")
             rep = eval(self.client.reply)
-            self.lambda_mode["flir_camera_exposure_and_rate"][0] = float(rep["exposure"])
-            self.lambda_mode["flir_camera_exposure_and_rate"][1] = float(rep["rate"])
+            self.lambda_imaging_mode["flir_camera_exposure_and_rate"][0] = float(rep["exposure"])
+            self.lambda_imaging_mode["flir_camera_exposure_and_rate"][1] = float(rep["rate"])
         except Exception as e:
             print("Error from flir camera: {}".format(e))
-            self.lambda_mode["flir_camera_exposure_and_rate"][0] = -1
-            self.lambda_mode["flir_camera_exposure_and_rate"][1] = -1
+            self.lambda_imaging_mode["flir_camera_exposure_and_rate"][0] = -1
+            self.lambda_imaging_mode["flir_camera_exposure_and_rate"][1] = -1
 
         try:
             self.client.process("GET tracker")
             rep = eval(self.client.reply)
-            self.lambda_mode["tracker_crop_size"] = int(rep["crop_size"])
-            self.lambda_mode["tracker_feature_size"] = int(rep["feature_size"])
-            self.lambda_mode["tracker_camera_source"] = int(rep["tracker_camera_source"])
+            self.lambda_imaging_mode["tracker_crop_size"] = int(rep["crop_size"])
+            self.lambda_imaging_mode["tracker_feature_size"] = int(rep["feature_size"])
+            self.lambda_imaging_mode["tracker_camera_source"] = int(rep["tracker_camera_source"])
         except Exception as e:
             print("Error from tracker: {}".format(e))
-            self.lambda_mode["tracker_crop_size"] = -1
-            self.lambda_mode["tracker_feature_size"] = -1
-            self.lambda_mode["tracker_camera_source"] = -1
+            self.lambda_imaging_mode["tracker_crop_size"] = -1
+            self.lambda_imaging_mode["tracker_feature_size"] = -1
+            self.lambda_imaging_mode["tracker_camera_source"] = -1
 
         try:
             self.client.process("GET zaber")
             rep = eval(self.client.reply)
-            self.lambda_mode["stage_xy_limit"] = float(rep["stage_xy_limit"])
-            self.lambda_mode["stage_max_velocities"][0] = float(rep["stage_max_xy_velocity"])
-            self.lambda_mode["stage_max_velocities"][1] = float(rep["stage_max_z_velocity"])
+            self.lambda_imaging_mode["stage_xy_limit"] = float(rep["stage_xy_limit"])
+            self.lambda_imaging_mode["stage_max_velocities"][0] = float(rep["stage_max_xy_velocity"])
+            self.lambda_imaging_mode["stage_max_velocities"][1] = float(rep["stage_max_z_velocity"])
         except Exception as e:
             print("Error from zaber: {}".format(e))
-            self.lambda_mode["stage_xy_limit"] = -1
-            self.lambda_mode["stage_max_velocities"][0] = -1
-            self.lambda_mode["stage_max_velocities"][1] = -1
+            self.lambda_imaging_mode["stage_xy_limit"] = -1
+            self.lambda_imaging_mode["stage_max_velocities"][0] = -1
+            self.lambda_imaging_mode["stage_max_velocities"][1] = -1
+        
+        try:
+            self.client.process("GET microfluidic_device")
+            rep = eval(self.client.reply)
+            self.lambda_microfluidic_mode["cycle"] = rep["cycle"] 
+            self.lambda_microfluidic_mode["buffer_time"] = rep["buffer_time"]
+            self.lambda_microfluidic_mode["odor_time"] = rep["odor_time"]
+            self.lambda_microfluidic_mode["initial_time"] = rep["initial_time"]
+            self.lambda_microfluidic_mode["randomized"] = rep["randomized"]
+            self.lambda_microfluidic_mode["buffer_valve_number"] = rep["buffer_valve"]
+            self.lambda_microfluidic_mode["control1_valve_number"] = rep["control1_valve"]
+            self.lambda_microfluidic_mode["control2_valve_number"] = rep["control2_valve"]
+            self.lambda_microfluidic_mode["odor_valves"] = rep["odor_valves"]
+            self.lambda_microfluidic_mode["buffer_name"] = rep["buffer_name"]
+            self.lambda_microfluidic_mode["control1_name"] = rep["control1_name"]
+            self.lambda_microfluidic_mode["control2_name"] = rep["control2_name"] 
+            self.lambda_microfluidic_mode["odor_names"] = rep["odor_names"]
+        except Exception as e:
+            print("Error from microfluidic device: {}".format(e))
+            self.lambda_microfluidic_mode["cycle"] = -1
+            self.lambda_microfluidic_mode["buffer_time"] = -1
+            self.lambda_microfluidic_mode["odor_time"] = -1
+            self.lambda_microfluidic_mode["initial_time"] = -1
+            self.lambda_microfluidic_mode["randomized"] = -1
+            self.lambda_microfluidic_mode["buffer_valve_number"] = -1
+            self.lambda_microfluidic_mode["control1_valve_number"] = -1
+            self.lambda_microfluidic_mode["control2_valve_number"] = -1
+            self.lambda_microfluidic_mode["odor_valves"] = []
+            self.lambda_microfluidic_mode["buffer_name"] = ""
+            self.lambda_microfluidic_mode["control1_name"] = ""
+            self.lambda_microfluidic_mode["control2_name"] = ""
+            self.lambda_microfluidic_mode["odor_names"] = []
+
+    def switch_microfluidic_experiment_entries(self):
+        if self.microfluidic_experiment.get():
+            state = 'disabled'
+        else:
+            state = 'normal'
+
+        self.cycle_entry.config(state=state)
+        self.buffer_time_entry.config(state=state)
+        self.odor_time_entry.config(state=state)
+        self.initial_time_entry.config(state=state)
+        self.buffer_valve_number_entry.config(state=state)
+        self.control1_valve_number_entry.config(state=state)
+        self.control2_valve_number_entry.config(state=state)
+        self.odor1_valve_number_entry.config(state=state)
+        self.odor2_valve_number_entry.config(state=state)
+        self.odor3_valve_number_entry.config(state=state)
+        self.odor4_valve_number_entry.config(state=state)
+        self.odor5_valve_number_entry.config(state=state)
+        self.odor6_valve_number_entry.config(state=state)
+        self.odor7_valve_number_entry.config(state=state)
+        self.odor8_valve_number_entry.config(state=state)
+        self.odor9_valve_number_entry.config(state=state)
+        self.odor10_valve_number_entry.config(state=state)
+        self.odor11_valve_number_entry.config(state=state)
+        self.odor12_valve_number_entry.config(state=state)
+        self.odor13_valve_number_entry.config(state=state)
+        self.buffer_name_entry.config(state=state)
+        self.control1_name_entry.config(state=state)
+        self.control2_name_entry.config(state=state)
+        self.odor1_name_entry.config(state=state)
+        self.odor2_name_entry.config(state=state) 
+        self.odor3_name_entry.config(state=state)
+        self.odor4_name_entry.config(state=state)
+        self.odor5_name_entry.config(state=state)
+        self.odor6_name_entry.config(state=state)
+        self.odor7_name_entry.config(state=state)
+        self.odor8_name_entry.config(state=state)
+        self.odor9_name_entry.config(state=state)
+        self.odor10_name_entry.config(state=state)
+        self.odor11_name_entry.config(state=state)
+        self.odor12_name_entry.config(state=state)
+        self.odor13_name_entry.config(state=state)
 
     def _compare_modes(self):
         self._decide_color(
-            self.gui_mode["laser_output_repeat"],
-            self.lambda_mode["laser_output_repeat"],
+            self.gui_imaging_mode["laser_output_repeat"],
+            self.lambda_imaging_mode["laser_output_repeat"],
             self.laser_output_repeat_check_button
         )
         self._decide_color(
-            self.gui_mode["filter1"],
-            self.lambda_mode["filter1"],
+            self.gui_imaging_mode["filter1"],
+            self.lambda_imaging_mode["filter1"],
             self.filter1_entry
         )
         self._decide_color(
-            self.gui_mode["filter2"],
-            self.lambda_mode["filter2"],
+            self.gui_imaging_mode["filter2"],
+            self.lambda_imaging_mode["filter2"],
             self.filter2_entry
         )
         self._decide_color(
-            self.gui_mode["total_volume"],
-            self.lambda_mode["total_volume"],
+            self.gui_imaging_mode["total_volume"],
+            self.lambda_imaging_mode["total_volume"],
             self.total_volume_entry
         )
         self._decide_color(
-            self.gui_mode["rest_time"],
-            self.lambda_mode["rest_time"],
+            self.gui_imaging_mode["rest_time"],
+            self.lambda_imaging_mode["rest_time"],
             self.rest_time_entry
         )
         self._decide_color(
-            self.gui_mode["bot_microscope_data_shape"][0],
-            self.lambda_mode["bot_microscope_data_shape"][0],
+            self.gui_imaging_mode["bot_microscope_data_shape"][0],
+            self.lambda_imaging_mode["bot_microscope_data_shape"][0],
             self.bot_microscope_data_shape_z_entry
         )
         self._decide_color(
-            self.gui_mode["bot_microscope_data_shape"][1],
-            self.lambda_mode["bot_microscope_data_shape"][1],
+            self.gui_imaging_mode["bot_microscope_data_shape"][1],
+            self.lambda_imaging_mode["bot_microscope_data_shape"][1],
             self.bot_microscope_data_shape_y_entry
         )
         self._decide_color(
-            self.gui_mode["bot_microscope_data_shape"][2],
-            self.lambda_mode["bot_microscope_data_shape"][2],
+            self.gui_imaging_mode["bot_microscope_data_shape"][2],
+            self.lambda_imaging_mode["bot_microscope_data_shape"][2],
             self.bot_microscope_data_shape_x_entry
         )
         self._decide_color(
-            self.gui_mode["bot_microscope_saving_mode"],
-            self.lambda_mode["bot_microscope_saving_mode"],
+            self.gui_imaging_mode["bot_microscope_saving_mode"],
+            self.lambda_imaging_mode["bot_microscope_saving_mode"],
             self.bot_microscope_saving_mode_check_button
         )
         self._decide_color(
-            self.gui_mode["tracker_crop_size"],
-            self.lambda_mode["tracker_crop_size"],
+            self.gui_imaging_mode["tracker_crop_size"],
+            self.lambda_imaging_mode["tracker_crop_size"],
             self.tracker_crop_size_entry
         )
         self._decide_color(
-            self.gui_mode["tracker_feature_size"],
-            self.lambda_mode["tracker_feature_size"],
+            self.gui_imaging_mode["tracker_feature_size"],
+            self.lambda_imaging_mode["tracker_feature_size"],
             self.tracker_feature_size_entry
         )
         self._decide_color(
-            self.gui_mode["tracker_camera_source"],
-            self.lambda_mode["tracker_camera_source"],
+            self.gui_imaging_mode["tracker_camera_source"],
+            self.lambda_imaging_mode["tracker_camera_source"],
             self.tracker_camera_source_entry
         )
         self._decide_color(
-            self.gui_mode["stage_xy_limit"],
-            self.lambda_mode["stage_xy_limit"],
+            self.gui_imaging_mode["stage_xy_limit"],
+            self.lambda_imaging_mode["stage_xy_limit"],
             self.stage_xy_limit_entry
         )
         self._decide_color_uncertain(
-            self.gui_mode["flir_camera_exposure_and_rate"][0],
-            self.lambda_mode["flir_camera_exposure_and_rate"][0],
+            self.gui_imaging_mode["flir_camera_exposure_and_rate"][0],
+            self.lambda_imaging_mode["flir_camera_exposure_and_rate"][0],
             self.flir_camera_exposure_entry
         )
         self._decide_color_uncertain(
-            self.gui_mode["flir_camera_exposure_and_rate"][1],
-            self.lambda_mode["flir_camera_exposure_and_rate"][1],
+            self.gui_imaging_mode["flir_camera_exposure_and_rate"][1],
+            self.lambda_imaging_mode["flir_camera_exposure_and_rate"][1],
             self.flir_camera_rate_entry
         )
         self._decide_color(
-            self.gui_mode["stage_max_velocities"][0],
-            self.lambda_mode["stage_max_velocities"][0],
+            self.gui_imaging_mode["stage_max_velocities"][0],
+            self.lambda_imaging_mode["stage_max_velocities"][0],
             self.stage_max_velocity_xy_entry
         )
         self._decide_color(
-            self.gui_mode["stage_max_velocities"][1],
-            self.lambda_mode["stage_max_velocities"][1],
+            self.gui_imaging_mode["stage_max_velocities"][1],
+            self.lambda_imaging_mode["stage_max_velocities"][1],
             self.stage_max_velocity_z_entry
         )
         self._decide_color(
-            self.gui_mode["top_microscope_saving_mode"],
-            self.lambda_mode["top_microscope_saving_mode"],
+            self.gui_imaging_mode["top_microscope_saving_mode"],
+            self.lambda_imaging_mode["top_microscope_saving_mode"],
             self.top_microscope_saving_mode_check_button
         )
         self._decide_color(
-            self.gui_mode["zyla_camera_trigger_mode"],
-            self.lambda_mode["zyla_camera_trigger_mode"],
+            self.gui_imaging_mode["zyla_camera_trigger_mode"],
+            self.lambda_imaging_mode["zyla_camera_trigger_mode"],
             self.zyla_camera_trigger_mode_radio_button_external_trigger
         )
         self._decide_color(
-            self.gui_mode["zyla_camera_trigger_mode"],
-            self.lambda_mode["zyla_camera_trigger_mode"],
+            self.gui_imaging_mode["zyla_camera_trigger_mode"],
+            self.lambda_imaging_mode["zyla_camera_trigger_mode"],
             self.zyla_camera_trigger_mode_radio_button_internal_trigger
         )
         self._decide_color(
-            self.gui_mode["dragonfly_imaging_mode"],
-            self.lambda_mode["dragonfly_imaging_mode"],
+            self.gui_imaging_mode["dragonfly_imaging_mode"],
+            self.lambda_imaging_mode["dragonfly_imaging_mode"],
             self.dragonfly_imaging_mode_radio_button_confocal_25um
         )
         self._decide_color(
-            self.gui_mode["dragonfly_imaging_mode"],
-            self.lambda_mode["dragonfly_imaging_mode"],
+            self.gui_imaging_mode["dragonfly_imaging_mode"],
+            self.lambda_imaging_mode["dragonfly_imaging_mode"],
             self.dragonfly_imaging_mode_radio_button_confocal_40um
         )
         self._decide_color(
-            self.gui_mode["dragonfly_imaging_mode"],
-            self.lambda_mode["dragonfly_imaging_mode"],
+            self.gui_imaging_mode["dragonfly_imaging_mode"],
+            self.lambda_imaging_mode["dragonfly_imaging_mode"],
             self.dragonfly_imaging_mode_radio_button_widefield
         )
         self._decide_color(
-            self.gui_mode["top_microscope_data_shape"][0],
-            self.lambda_mode["top_microscope_data_shape"][0],
+            self.gui_imaging_mode["top_microscope_data_shape"][0],
+            self.lambda_imaging_mode["top_microscope_data_shape"][0],
             self.top_microscope_data_shape_z_entry
         )
         self._decide_color(
-            self.gui_mode["top_microscope_data_shape"][1],
-            self.lambda_mode["top_microscope_data_shape"][1],
+            self.gui_imaging_mode["top_microscope_data_shape"][1],
+            self.lambda_imaging_mode["top_microscope_data_shape"][1],
             self.top_microscope_data_shape_y_entry
         )
         self._decide_color(
-            self.gui_mode["top_microscope_data_shape"][2],
-            self.lambda_mode["top_microscope_data_shape"][2],
+            self.gui_imaging_mode["top_microscope_data_shape"][2],
+            self.lambda_imaging_mode["top_microscope_data_shape"][2],
             self.top_microscope_data_shape_x_entry
         )
         self._decide_color(
-            self.gui_mode["z_resolution_in_um"],
-            self.lambda_mode["z_resolution_in_um"],
+            self.gui_imaging_mode["z_resolution_in_um"],
+            self.lambda_imaging_mode["z_resolution_in_um"],
             self.z_resolution_in_um_entry
         )
         self._decide_color(
-            self.gui_mode["zyla_camera_exposure_time_in_ms"],
-            self.lambda_mode["zyla_camera_exposure_time_in_ms"],
+            self.gui_imaging_mode["zyla_camera_exposure_time_in_ms"],
+            self.lambda_imaging_mode["zyla_camera_exposure_time_in_ms"],
             self.zyla_camera_exposure_time_in_ms_entry
         )
         self._decide_color(
-            self.gui_mode["laser_power"][0][0],
-            self.lambda_mode["laser_power"][0][0],
+            self.gui_imaging_mode["laser_power"][0][0],
+            self.lambda_imaging_mode["laser_power"][0][0],
             self.laser_405_vol_1_entry
         )
         self._decide_color(
-            self.gui_mode["laser_power"][0][1],
-            self.lambda_mode["laser_power"][0][1],
+            self.gui_imaging_mode["laser_power"][0][1],
+            self.lambda_imaging_mode["laser_power"][0][1],
             self.laser_405_vol_2_entry
         )
         self._decide_color(
-            self.gui_mode["laser_power"][0][2],
-            self.lambda_mode["laser_power"][0][2],
+            self.gui_imaging_mode["laser_power"][0][2],
+            self.lambda_imaging_mode["laser_power"][0][2],
             self.laser_405_vol_3_entry
         )
         self._decide_color(
-            self.gui_mode["laser_power"][0][3],
-            self.lambda_mode["laser_power"][0][3],
+            self.gui_imaging_mode["laser_power"][0][3],
+            self.lambda_imaging_mode["laser_power"][0][3],
             self.laser_405_vol_4_entry
         )
         self._decide_color(
-            self.gui_mode["laser_power"][1][0],
-            self.lambda_mode["laser_power"][1][0],
+            self.gui_imaging_mode["laser_power"][1][0],
+            self.lambda_imaging_mode["laser_power"][1][0],
             self.laser_488_vol_1_entry
         )
         self._decide_color(
-            self.gui_mode["laser_power"][1][1],
-            self.lambda_mode["laser_power"][1][1],
+            self.gui_imaging_mode["laser_power"][1][1],
+            self.lambda_imaging_mode["laser_power"][1][1],
             self.laser_488_vol_2_entry
         )
         self._decide_color(
-            self.gui_mode["laser_power"][1][2],
-            self.lambda_mode["laser_power"][1][2],
+            self.gui_imaging_mode["laser_power"][1][2],
+            self.lambda_imaging_mode["laser_power"][1][2],
             self.laser_488_vol_3_entry
         )
         self._decide_color(
-            self.gui_mode["laser_power"][1][3],
-            self.lambda_mode["laser_power"][1][3],
+            self.gui_imaging_mode["laser_power"][1][3],
+            self.lambda_imaging_mode["laser_power"][1][3],
             self.laser_488_vol_4_entry
         )
         self._decide_color(
-            self.gui_mode["laser_power"][2][0],
-            self.lambda_mode["laser_power"][2][0],
+            self.gui_imaging_mode["laser_power"][2][0],
+            self.lambda_imaging_mode["laser_power"][2][0],
             self.laser_561_vol_1_entry
         )
         self._decide_color(
-            self.gui_mode["laser_power"][2][1],
-            self.lambda_mode["laser_power"][2][1],
+            self.gui_imaging_mode["laser_power"][2][1],
+            self.lambda_imaging_mode["laser_power"][2][1],
             self.laser_561_vol_2_entry
         )
         self._decide_color(
-            self.gui_mode["laser_power"][2][2],
-            self.lambda_mode["laser_power"][2][2],
+            self.gui_imaging_mode["laser_power"][2][2],
+            self.lambda_imaging_mode["laser_power"][2][2],
             self.laser_561_vol_3_entry
         )
         self._decide_color(
-            self.gui_mode["laser_power"][2][3],
-            self.lambda_mode["laser_power"][2][3],
+            self.gui_imaging_mode["laser_power"][2][3],
+            self.lambda_imaging_mode["laser_power"][2][3],
             self.laser_561_vol_4_entry
         )
         self._decide_color(
-            self.gui_mode["laser_power"][3][0],
-            self.lambda_mode["laser_power"][3][0],
+            self.gui_imaging_mode["laser_power"][3][0],
+            self.lambda_imaging_mode["laser_power"][3][0],
             self.laser_640_vol_1_entry
         )
         self._decide_color(
-            self.gui_mode["laser_power"][3][1],
-            self.lambda_mode["laser_power"][3][1],
+            self.gui_imaging_mode["laser_power"][3][1],
+            self.lambda_imaging_mode["laser_power"][3][1],
             self.laser_640_vol_2_entry
         )
         self._decide_color(
-            self.gui_mode["laser_power"][3][2],
-            self.lambda_mode["laser_power"][3][2],
+            self.gui_imaging_mode["laser_power"][3][2],
+            self.lambda_imaging_mode["laser_power"][3][2],
             self.laser_640_vol_3_entry
         )
         self._decide_color(
-            self.gui_mode["laser_power"][3][3],
-            self.lambda_mode["laser_power"][3][3],
+            self.gui_imaging_mode["laser_power"][3][3],
+            self.lambda_imaging_mode["laser_power"][3][3],
             self.laser_640_vol_4_entry
         )
+        self._decide_color(
+            self.gui_imaging_mode["laser_power"][3][3],
+            self.lambda_imaging_mode["laser_power"][3][3],
+            self.cycle_entry
+        )
+        self._decide_color(
+            self.gui_microfluidic_mode["buffer_time"],
+            self.lambda_microfluidic_mode["buffer_time"],
+            self.buffer_time_entry
+        )
+        self._decide_color(
+            self.gui_microfluidic_mode["cycle"],
+            self.lambda_microfluidic_mode["cycle"],
+            self.cycle_entry
+        )
+        self._decide_color_str(
+            self.gui_microfluidic_mode["odor_names"][12],
+            self.lambda_microfluidic_mode["odor_names"][12],
+            self.odor13_name_entry
+        )
+        self._decide_color_str(
+            self.gui_microfluidic_mode["odor_names"][11],
+            self.lambda_microfluidic_mode["odor_names"][11],
+            self.odor12_name_entry
+        )
+        self._decide_color_str(
+            self.gui_microfluidic_mode["odor_names"][10],
+            self.lambda_microfluidic_mode["odor_names"][10],
+            self.odor11_name_entry
+        )
+        self._decide_color_str(
+            self.gui_microfluidic_mode["odor_names"][9],
+            self.lambda_microfluidic_mode["odor_names"][9],
+            self.odor10_name_entry
+        )
+        self._decide_color_str(
+            self.gui_microfluidic_mode["odor_names"][8],
+            self.lambda_microfluidic_mode["odor_names"][8],
+            self.odor9_name_entry
+        )
+        self._decide_color_str(
+            self.gui_microfluidic_mode["odor_names"][7],
+            self.lambda_microfluidic_mode["odor_names"][7],
+            self.odor8_name_entry
+        )
+        self._decide_color_str(
+            self.gui_microfluidic_mode["odor_names"][6],
+            self.lambda_microfluidic_mode["odor_names"][6],
+            self.odor7_name_entry
+        )
+        self._decide_color_str(
+            self.gui_microfluidic_mode["odor_names"][5],
+            self.lambda_microfluidic_mode["odor_names"][5],
+            self.odor6_name_entry
+        )
+        self._decide_color_str(
+            self.gui_microfluidic_mode["odor_names"][4],
+            self.lambda_microfluidic_mode["odor_names"][4],
+            self.odor5_name_entry
+        )
+        self._decide_color_str(
+            self.gui_microfluidic_mode["odor_names"][3],
+            self.lambda_microfluidic_mode["odor_names"][3],
+            self.odor4_name_entry
+        )
+        self._decide_color_str(
+            self.gui_microfluidic_mode["odor_names"][2],
+            self.lambda_microfluidic_mode["odor_names"][2],
+            self.odor3_name_entry
+        )
+        self._decide_color_str(
+            self.gui_microfluidic_mode["odor_names"][1],
+            self.lambda_microfluidic_mode["odor_names"][1],
+            self.odor2_name_entry
+        )
+        self._decide_color_str(
+            self.gui_microfluidic_mode["odor_names"][0],
+            self.lambda_microfluidic_mode["odor_names"][0],
+            self.odor1_name_entry
+        )
+        self._decide_color_str(
+            self.gui_microfluidic_mode["control2_name"],
+            self.lambda_microfluidic_mode["control2_name"],
+            self.control2_name_entry
+        )
+        self._decide_color_str(
+            self.gui_microfluidic_mode["control1_name"],
+            self.lambda_microfluidic_mode["control1_name"],
+            self.control1_name_entry
+        )
+        self._decide_color_str(
+            self.gui_microfluidic_mode["buffer_name"],
+            self.lambda_microfluidic_mode["buffer_name"],
+            self.buffer_name_entry
+        )
+        self._decide_color(
+            self.gui_microfluidic_mode["odor_valves"][12],
+            self.lambda_microfluidic_mode["odor_valves"][12],
+            self.odor13_valve_number_entry
+        )
+        self._decide_color(
+            self.gui_microfluidic_mode["odor_valves"][11],
+            self.lambda_microfluidic_mode["odor_valves"][11],
+            self.odor12_valve_number_entry
+        )
+        self._decide_color(
+            self.gui_microfluidic_mode["odor_valves"][10],
+            self.lambda_microfluidic_mode["odor_valves"][10],
+            self.odor11_valve_number_entry
+        )
+        self._decide_color(
+            self.gui_microfluidic_mode["odor_valves"][9],
+            self.lambda_microfluidic_mode["odor_valves"][9],
+            self.odor10_valve_number_entry
+        )
+        self._decide_color(
+            self.gui_microfluidic_mode["odor_valves"][8],
+            self.lambda_microfluidic_mode["odor_valves"][8],
+            self.odor9_valve_number_entry
+        )
+        self._decide_color(
+            self.gui_microfluidic_mode["odor_valves"][7],
+            self.lambda_microfluidic_mode["odor_valves"][7],
+            self.odor8_valve_number_entry
+        )
+        self._decide_color(
+            self.gui_microfluidic_mode["odor_valves"][6],
+            self.lambda_microfluidic_mode["odor_valves"][6],
+            self.odor7_valve_number_entry
+        )
+        self._decide_color(
+            self.gui_microfluidic_mode["odor_valves"][5],
+            self.lambda_microfluidic_mode["odor_valves"][5],
+            self.odor6_valve_number_entry
+        )
+        self._decide_color(
+            self.gui_microfluidic_mode["odor_valves"][4],
+            self.lambda_microfluidic_mode["odor_valves"][4],
+            self.odor5_valve_number_entry
+        )
+        self._decide_color(
+            self.gui_microfluidic_mode["odor_valves"][3],
+            self.lambda_microfluidic_mode["odor_valves"][3],
+            self.odor4_valve_number_entry
+        )
+        self._decide_color(
+            self.gui_microfluidic_mode["odor_valves"][2],
+            self.lambda_microfluidic_mode["odor_valves"][2],
+            self.odor3_valve_number_entry
+        )
+        self._decide_color(
+            self.gui_microfluidic_mode["odor_valves"][1],
+            self.lambda_microfluidic_mode["odor_valves"][1],
+            self.odor2_valve_number_entry
+        )
+        self._decide_color(
+            self.gui_microfluidic_mode["odor_valves"][0],
+            self.lambda_microfluidic_mode["odor_valves"][0],
+            self.odor1_valve_number_entry
+        )
+        self._decide_color(
+            self.gui_microfluidic_mode["control2_valve"],
+            self.lambda_microfluidic_mode["control2_valve"],
+            self.control2_valve_number_entry
+        )
+        self._decide_color(
+            self.gui_microfluidic_mode["control1_valve"],
+            self.lambda_microfluidic_mode["control1_valve"],
+            self.control1_valve_number_entry
+        )
+        self._decide_color(
+            self.gui_microfluidic_mode["buffer_valve"],
+            self.lambda_microfluidic_mode["buffer_valve"],
+            self.buffer_valve_number_entry
+        )
+        self._decide_color(
+            self.gui_microfluidic_mode["randomized"],
+            self.lambda_microfluidic_mode["randomized"],
+            self.randomized_odor_check_button
+        )
+        self._decide_color(
+            self.gui_microfluidic_mode["initial_time"],
+            self.lambda_microfluidic_mode["initial_time"],
+            self.initial_time_entry
+        )
+        self._decide_color(
+            self.gui_microfluidic_mode["odor_time"],
+            self.lambda_microfluidic_mode["odor_time"],
+            self.odor_time_entry
+        )
+
+    def _decide_color_str(self, displayed_val, set_val, widget):
+        if str(displayed_val) == str(set_val):
+            widget.configure({"fg": "black"})
+        else:
+            widget.configure({"fg": "red"})
 
     def _decide_color(self, displayed_val, set_val, widget):
         if float(displayed_val) == float(set_val):
@@ -2625,3 +3238,19 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
+
+
+
+
+# if __name__ == '__main__':
+#     #test the dialog
+#     root=Tk()
+#     def run():
+#         values = ['Red','Green','Blue','Yellow']
+#         dlg = OptionDialog(root,'TestDialog',"Select a color",values)
+#         print(dlg.result)
+#     Button(root,text='Dialog',command=run).pack()
+#     root.mainloop()

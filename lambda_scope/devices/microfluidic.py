@@ -20,7 +20,6 @@ Options:
 import time
 import json
 import random
-import threading
 from typing import Tuple
 
 import numpy as np
@@ -41,35 +40,44 @@ class MicrofluidicDevice:
         self.running = False
         self.name = name
 
-        self.odor_valves = [4, 6, 9, 10, 11, 12, 13, 14, 15, 16]
+        
         self.shuffled_odor_valves = []
+        self.shuffled_odor_names = []
+        self.odor_valves = [4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         self.odor_names = [
             "Fluorescein",
-            "10mM CuSO4",
-            "Control",
-            "800mM Sorbitol",
-            "1uM ascr#3",
-            "OP50",
-            "e-2 IAA",
-            "e-6 IAA",
-            "450mM NaCl",
-            "75mM NaCl"
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
         ]
-        self.shuffled_odor_names = []
-        self.randomized = True
-        self.cycle = 2
-        self.initial_time = 10
-        self.buffer_time = 5
-        self.odor_time = 3
+        self.randomized = 1
+        self.cycle = 1
+        self.initial_time = 60
+        self.buffer_time = 30
+        self.odor_time = 15
         self.buffer_valve = 1
         self.control1_valve = 2
         self.control2_valve = 3
-        self.buffer_name = "hi"
+        self.control1_name = ""
+        self.control2_name = ""
+        self.buffer_name = ""
         self.status = {}
         self.valves = []
         self.current_valves = []
         self.times = []
         self.flow = []
+
+        self.temp_valves = []
+        self.temp_names = []
 
         self.command_subscriber = ObjectSubscriber(
             obj=self,
@@ -83,13 +91,133 @@ class MicrofluidicDevice:
             port=outbound[1],
             bound=outbound[2])
 
+        self.status["odor_valves"] = self.odor_valves
+        self.status["odor_names"] = self.odor_names
+        self.status["randomized"] = self.randomized
+        self.status["cycle"] = self.cycle
+        self.status["initial_time"] = self.initial_time
+        self.status["buffer_time"] = self.buffer_time
+        self.status["odor_time"] = self.odor_time
+        self.status["buffer_valve"] = self.buffer_valve
+        self.status["control1_valve"] = self.control1_valve
+        self.status["control2_valve"] = self.control2_valve
+        self.status["control1_name"] = self.control1_name
+        self.status["control2_name"] = self.control2_name
+        self.status["buffer_name"] = self.buffer_name
+        self.status["flow"] = ""
+        self.prepare()
+        time.sleep(1)
+        self.publish_status()
+
+    def set_odor_valve(self, idx, valve_number):
+        self.odor_valves[idx] = valve_number
+        self.status["odor_valves"] = self.odor_valves
+        self.prepare()
+        self.publish_status()
+    
+    def set_odor_name(self, *args):
+        idx = args[0]
+        name = " ".join(map(str, args[1:]))
+        if name == "none":
+            self.odor_names[idx] = ""
+        else:
+            self.odor_names[idx] = name
+        self.status["odor_names"] = self.odor_names
+        self.prepare()
+        self.publish_status()
+
+    def set_randomness(self, is_random):
+        self.randomized = is_random
+        self.status["randomized"] = self.randomized
+        self.prepare()
+        self.publish_status()
+
+    def set_cycle(self, cycle):
+        self.cycle = cycle
+        self.status["cycle"] = self.cycle
+        self.prepare()
+        self.publish_status()
+
+    def set_initial_time(self, initial_time):
+        self.initial_time = initial_time
+        self.status["initial_time"] = self.initial_time
+        self.prepare()
+        self.publish_status()
+
+    def set_buffer_time(self, buffer_time):
+        self.buffer_time = buffer_time
+        self.status["buffer_time"] = self.buffer_time
+        self.prepare()
+        self.publish_status()
+
+    def set_buffer_name(self, *args):
+        buffer_name = " ".join(args)
+        if buffer_name == "none":
+            self.buffer_name = ""
+        else:
+            self.buffer_name = buffer_name
+        self.status["buffer_name"] = self.buffer_name
+        self.prepare()
+        self.publish_status()
+
+    def set_odor_time(self, odor_time):
+        self.odor_time = odor_time
+        self.status["odor_time"] = self.odor_time
+        self.prepare()
+        self.publish_status()
+
+    def set_buffer_valve(self, buffer_valve):
+        self.buffer_valve = buffer_valve
+        self.status["buffer_valve"] = self.buffer_valve
+        self.prepare()
+        self.publish_status()
+
+    def set_control1_valve(self, control1_valve):
+        self.control1_valve = control1_valve
+        self.status["control1_valve"] = self.control1_valve
+        self.prepare()
+        self.publish_status()
+
+    def set_control2_valve(self, control2_valve):
+        self.control2_valve = control2_valve
+        self.status["control2_valve"] = self.control2_valve
+        self.prepare()
+        self.publish_status()
+
+    def set_control1_name(self, *args):
+        control1_name = " ".join(map(str, args))
+        if control1_name  == "none":
+            self.control1_name = ""
+        else:
+            self.control1_name = control1_name
+        self.status["control1_name"] = self.control1_name
+        self.prepare()
+        self.publish_status()
+
+    def set_control2_name(self, *args):
+        control2_name = " ".join(map(str, args))
+        if control2_name  == "none":
+            self.control2_name = ""
+        else:
+            self.control2_name = control2_name
+        self.status["control2_name"] = self.control2_name
+        self.prepare()
+        self.publish_status()
+
     def _get_odor_sequence(self):
-        temp = self.odor_valves.copy()
-        if self.randomized == True:
+        self.temp_valves = []
+        self.temp_names = []
+        for i, valve_number in enumerate(self.odor_valves):
+            if valve_number !=0:
+                self.temp_valves.append(valve_number)
+                self.temp_names.append(self.odor_names[i])
+
+        temp = self.temp_valves.copy()
+        if self.randomized in (1, "1", True, "true", "True"):
             random.shuffle(temp)
-        index = [self.odor_valves.index(odor) for odor in temp]
+        index = [self.temp_valves.index(odor) for odor in temp]
         self.shuffled_odor_valves = self.cycle * temp
-        self.shuffled_odor_names = self.cycle * [self.odor_names[i] for i in index]
+        self.shuffled_odor_names = self.cycle * [self.temp_names[i] for i in index]
 
 
     def _make_intervals(self):
@@ -130,19 +258,6 @@ class MicrofluidicDevice:
 
         self.valves = self.valves[1:, :]
 
-    def _make_valve_names(self):
-        valve_names = [""]*17
-        valve_names[self.buffer_valve] = self.buffer_name
-        valve_names[self.control1_valve] = "control1"
-        valve_names[self.control2_valve] = "control2"
-        counter = 0
-        for odor in self.odor_valves:
-            valve_names[odor] = self.odor_names[counter]
-            counter += 1
-
-        self.status["valve_names"] = list(valve_names[1:])
-        return valve_names[1:]
-
     def _loop(self):
         t0 = time.time()
         counter = 0
@@ -162,7 +277,6 @@ class MicrofluidicDevice:
         for i, element in enumerate(self.valves[:, counter]):
             self.publisher.send("valve switch_valve {} {}".format(i, element))
 
-        self.status["valve_status"] = list(self.valves[:, counter])
         self.status["flow"] = self.flow[counter]
         self.publish_status()
 
@@ -172,19 +286,20 @@ class MicrofluidicDevice:
         self.publisher.send("hub " + json.dumps({self.name: self.status}, default=int))
         self.publisher.send("logger "+ json.dumps({self.name: self.status}, default=int))
 
+    def prepare(self):
+        self._get_odor_sequence()
+        self._make_intervals()
 
     def start(self):
         if not self.running:
             self.running = True
-            self._get_odor_sequence()
-            self._make_intervals()
-            self._make_valve_names()
             self._loop()
 
     def stop(self):
         if self.running:
             self.running = False
             self._publish(-1)
+            self.prepare()
             self.publisher.send("hub stop")
 
     def run(self):
