@@ -147,6 +147,7 @@ class  WriteSession(multiprocessing.Process):
             sockets = dict(self.poller.poll())
 
             if self.command_subscriber.socket in sockets:
+                self.data_subscriber.get_last()
                 self.command_subscriber.handle()
 
 
