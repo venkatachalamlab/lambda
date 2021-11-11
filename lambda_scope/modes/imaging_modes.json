@@ -65,12 +65,12 @@
         "zyla_camera_trigger_mode": 2,
         "dragonfly_imaging_mode": 2,
         "top_microscope_data_shape": [
-            20,
-            256,
+            25,
+            512,
             512
         ],
         "z_resolution_in_um": 1.5,
-        "zyla_camera_exposure_time_in_ms": 5,
+        "zyla_camera_exposure_time_in_ms": 10,
         "laser_power": [
             [
                 0,
@@ -121,17 +121,17 @@
             1000
         ]
     },
-    "sdfgdf": {
-        "top_microscope_saving_mode": 0,
-        "zyla_camera_trigger_mode": 1,
-        "dragonfly_imaging_mode": 1,
+    "zma": {
+        "top_microscope_saving_mode": 1,
+        "zyla_camera_trigger_mode": 2,
+        "dragonfly_imaging_mode": 2,
         "top_microscope_data_shape": [
-            1,
+            25,
             512,
             512
         ],
-        "z_resolution_in_um": 1.0,
-        "zyla_camera_exposure_time_in_ms": 20.0,
+        "z_resolution_in_um": 1.2,
+        "zyla_camera_exposure_time_in_ms": 10.0,
         "laser_power": [
             [
                 0.0,
@@ -140,16 +140,16 @@
                 0.0
             ],
             [
-                0.0,
-                0.0,
-                0.0,
-                0.0
+                3.0,
+                3.0,
+                3.0,
+                3.0
             ],
             [
-                0.0,
-                0.0,
-                0.0,
-                0.0
+                2.0,
+                2.0,
+                2.0,
+                2.0
             ],
             [
                 0.0,
@@ -159,69 +159,8 @@
             ]
         ],
         "laser_output_repeat": 0,
-        "filter1": 4,
-        "filter2": 5,
-        "total_volume": 1,
-        "rest_time": 0,
-        "bot_microscope_data_shape": [
-            1,
-            512,
-            512
-        ],
-        "bot_microscope_saving_mode": 0,
-        "tracker_crop_size": 300,
-        "tracker_feature_size": 2500,
-        "tracker_camera_source": 1,
-        "stage_xy_limit": 15000.0,
-        "flir_camera_exposure_and_rate": [
-            24000.0,
-            40.0
-        ],
-        "stage_max_velocities": [
-            1000.0,
-            1000.0
-        ]
-    },
-    "asdfff": {
-        "top_microscope_saving_mode": 0,
-        "zyla_camera_trigger_mode": 1,
-        "dragonfly_imaging_mode": 1,
-        "top_microscope_data_shape": [
-            1,
-            512,
-            512
-        ],
-        "z_resolution_in_um": 1.0,
-        "zyla_camera_exposure_time_in_ms": 20.0,
-        "laser_power": [
-            [
-                0.0,
-                0.0,
-                0.0,
-                0.0
-            ],
-            [
-                0.0,
-                0.0,
-                0.0,
-                0.0
-            ],
-            [
-                0.0,
-                0.0,
-                0.0,
-                0.0
-            ],
-            [
-                0.0,
-                0.0,
-                0.0,
-                0.0
-            ]
-        ],
-        "laser_output_repeat": 0,
-        "filter1": 4,
-        "filter2": 4,
+        "filter1": 1,
+        "filter2": 1,
         "total_volume": 1,
         "rest_time": 0,
         "bot_microscope_data_shape": [

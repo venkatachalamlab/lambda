@@ -41,5 +41,48 @@
         "initial_time": 60.0,
         "randomized": true,
         "cycle": 1
+    },
+    "zm_mf": {
+        "cycle": 2,
+        "buffer_time": 30.0,
+        "odor_time": 15.0,
+        "initial_time": 60.0,
+        "buffer_valve": 1,
+        "buffer_name": "CTX",
+        "control1_valve": 2,
+        "control2_valve": 3,
+        "randomized": 1,
+        "control1_name": "diH2O",
+        "control2_name": "diH2O",
+        "odor_names": [
+            "Fluorescein",
+            "10mM CuSO4",
+            "Control",
+            "800mM Sorbitol",
+            "1uM ascr#3",
+            "OP50",
+            "e-2 IAA",
+            "e-6 IAA",
+            "450mM NaCl",
+            "75mM NaCl",
+            "",
+            "",
+            ""
+        ],
+        "odor_valves": [
+            4,
+            6,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            0,
+            0,
+            0
+        ]
     }
 }
