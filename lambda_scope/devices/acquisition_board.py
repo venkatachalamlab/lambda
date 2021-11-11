@@ -61,10 +61,10 @@ class PiezoCameraLaserDAQ():
         self.laser_power = np.zeros((4, 4))
         self.voltage_step = 0.1
         self.stack_size = self.shape[0]
-
+        self.z_offset = 5.0 - self.stack_size * 0.05
         self.n_increments = 4
 
-        self.z_offset = 3.0
+
         self.if_buffer = 0
         self.initiated_flag_camera = 0
         self.initiated_flag_laser = 0
@@ -114,6 +114,7 @@ class PiezoCameraLaserDAQ():
         """Changes the shape of input and output array."""
         self.shape = (stack_size, self.shape[1], self.shape[2])
         self.stack_size = self.shape[0]
+        self.z_offset = 5.0 - self.stack_size * 0.05
         self._initialize()
         self._prepare_daq(self.z_offset)
         self.publish_status()
