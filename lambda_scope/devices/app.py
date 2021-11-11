@@ -43,13 +43,16 @@ class LambdaApp():
 
         self.client = Client(client_port)
         self.window = tkinter.Tk()
-
-        self.window_width= self.window.winfo_screenwidth()
-        self.window_height= self.window.winfo_screenheight()
+        self.window_width = self.window.winfo_screenwidth()
         self.x_spacing = 5
         self.y_spacing = 8
-        self.window.geometry("{}x{}".format(self.window_width, self.window_height))
         self.window.title("LAMBDA")
+        self.window.iconbitmap(
+            os.path.join(
+                os.path.dirname(lambda_scope.__file__),
+                "icons", "icon.ico"
+            )
+        )
         self.imaging_mode_filename = os.path.join(
             os.path.dirname(lambda_scope.__file__),
             "modes", "imaging_modes.json"
@@ -729,6 +732,14 @@ class LambdaApp():
             self.window, text="Stop",
             command=self.stop
         )
+        self.save_microfluidic_mode_button = tkinter.Button(
+            self.window, text="Save",
+            command=self.save_microfluidic_mode
+        )
+        self.save_imaging_mode_button = tkinter.Button(
+            self.window, text="Save",
+            command=self.save_imaging_mode
+        )
         self.ready_busy_button = tkinter.Button(
             self.window,
             bg="green",
@@ -1207,11 +1218,11 @@ class LambdaApp():
         )
         self.current_microfluidic_mode_name.bind(
             '<Return>',
-            lambda _: self.save_microfluidic_mode()
+            lambda _: self.update_gui_mode()
         )
         self.current_imaging_mode_name.bind(
             '<Return>',
-            lambda _: self.save_imaging_mode()
+            lambda _: self.update_gui_mode()
         )
         self.imaging_mode_load_button.bind(
             '<Button-1>',
@@ -1979,6 +1990,8 @@ class LambdaApp():
             self.current_microfluidic_mode_name.winfo_reqwidth(),
             self.current_imaging_mode_name.winfo_reqwidth()
         )
+
+        x24_1 = self.save_microfluidic_mode_button.winfo_reqwidth()
         _ = max(
             self.imaging_mode_load_button.winfo_reqwidth(),
             self.microfluidic_mode_load_button.winfo_reqwidth(),
@@ -2025,6 +2038,14 @@ class LambdaApp():
             x = x22,
             y = 5 * y1 + 6 * self.y_spacing
         )
+        self.save_imaging_mode_button.place(
+            x = x22 + x23 + x24 + 2 * self.x_spacing,
+            y = 4 * self.y_spacing + 3 * y1 - 4
+        )
+        self.save_microfluidic_mode_button.place(
+            x = x22 + x23 + x24 + 2 * self.x_spacing,
+            y = 5 * self.y_spacing + 4 * y1 - 4
+        )
 
         self.command_entry.place(
             x = self.x_spacing,
@@ -2035,7 +2056,7 @@ class LambdaApp():
             y = 9 * self.y_spacing + 8 * y1
         )
 
-        x25 = 2 * self.x_spacing + x22 + x24 + x23 + 10 * self.x_spacing
+        x25 = 2 * self.x_spacing + x22 + x24 + x24_1 + x23 + 10 * self.x_spacing
         x26 = max(
             self.cycle_label.winfo_reqwidth(),
             self.buffer_time_label.winfo_reqwidth(),
@@ -2096,9 +2117,51 @@ class LambdaApp():
             y = 2 * y1 + 3 * self.y_spacing
         )
 
+        self.window_height = 9 * y1 + 10 * self.y_spacing
+        self.x_spacing = 5
+        self.y_spacing = 8
+        self.window.geometry("{}x{}+{}+{}".format(self.window_width, self.window_height, 0, 0))
+        self.window.resizable(width=True, height=True)
         self.update_gui_mode()
         self.window.protocol("WM_DELETE_WINDOW", self.shutdown)
+        self.ready = False
+        self.window.after(0, self.check_system)
         self.window.mainloop()
+
+
+    def check_system(self):
+        self.ready_busy_button.configure({"bg": "red"})
+        if not self.ready:
+            self.client.process("GET dragonfly")
+            dragonfly_rep = self.client.reply
+            try:
+                _ = eval(dragonfly_rep)
+                dragonfly_ready = True
+            except:
+                dragonfly_ready = False
+
+            self.client.process("GET ZylaCamera1")
+            camera1_rep = self.client.reply
+            try:
+                _ = eval(camera1_rep)
+                camera1_ready = True
+            except:
+                camera1_ready = False
+
+            self.client.process("GET ZylaCamera2")
+            camera2_rep = self.client.reply
+            try:
+                _ = eval(camera2_rep)
+                camera2_ready = True
+            except:
+                camera2_ready = False
+            self.ready = bool(dragonfly_ready and \
+                              camera1_ready and \
+                              camera2_ready)
+            self.window.after(2000, self.check_system)
+        else:
+            self.ready_busy_button.configure({"bg": "green"})
+
 
     def prepare_imaging_mode_load_button(self):
         self.ready_busy_button.configure({"bg": "red"})
@@ -2216,25 +2279,29 @@ class LambdaApp():
                 "Run All",
                 "Cancel"
             ]
-            rep = OptionBox(self.window,'Run Options', options)
-            if rep == options[0]:
+            rep = OptionBox(self,'Run Options', options)
+            if rep.result == options[0]:
                 self.client.process("DO start")
-            elif rep == options[1]:
+                self.reply.set(self.client.reply)
+            elif rep.result == options[1]:
                 self.client.process("DO _microfluidic_device_start")
-            elif rep == options[2]:
+                self.reply.set(self.client.reply)
+            elif rep.result == options[2]:
                 self.client.process("DO start")
                 time.sleep(8)
                 self.client.process("DO _microfluidic_device_start")
-
+                self.reply.set(self.client.reply)
         else:
             options = [
                 "Run Imaging Session",
                 "Cancel"
             ]
-            rep = OptionBox(self.window,'Stop Options', options)
-            if rep == options[0]:
-                self.client.process("DO stop")
+            rep = OptionBox(self,'Run Options', options)
+            if rep.result == options[0]:
+                self.client.process("DO start")
+                self.reply.set(self.client.reply)
         self.ready_busy_button.configure({"bg": "green"})
+        self._change_focus()
 
     def stop(self):
         self.ready_busy_button.configure({"bg": "red"})
@@ -2245,24 +2312,30 @@ class LambdaApp():
                 "Stop All",
                 "Cancel"
             ]
-            rep = OptionBox(self.window,'Stop Options', options)
-            if rep == options[0]:
+            rep = OptionBox(self,'Stop Options', options)
+            if rep.result == options[0]:
                 self.client.process("DO stop")
-            elif rep == options[1]:
+                self.reply.set(self.client.reply)
+            elif rep.result == options[1]:
                 self.client.process("DO _microfluidic_device_stop")
-            elif rep == options[2]:
+                self.reply.set(self.client.reply)
+            elif rep.result == options[2]:
+                self.client.process("DO _microfluidic_device_stop")
+                self.reply.set(self.client.reply)
                 self.client.process("DO stop")
-                self.client.process("DO _microfluidic_device_stop")
+                self.reply.set(self.client.reply)
 
         else:
             options = [
                 "Stop Imaging Session",
                 "Cancel"
             ]
-            rep = OptionBox(self.window,'Stop Options', options)
-            if rep == options[0]:
+            rep = OptionBox(self,'Stop Options', options)
+            if rep.result == options[0]:
                 self.client.process("DO stop")
+                self.reply.set(self.client.reply)
         self.ready_busy_button.configure({"bg": "green"})
+        self._change_focus()
 
     def _save_imaging_mode(self):
         mode_name = self.current_imaging_mode_name.get()
@@ -2399,6 +2472,7 @@ class LambdaApp():
 
     def _set_current_mode(self):
         self.client.process("DO stop")
+        self.client.process("DO _microfluidic_device_stop")
 
         for i in range(4):
             for j in range(4):
@@ -2565,11 +2639,11 @@ class LambdaApp():
         self.gui_microfluidic_mode["randomized"] = int(self.randomized_odor.get())
         self.gui_microfluidic_mode["control1_name"] = self.control1_name.get()
         self.gui_microfluidic_mode["control2_name"] = self.control2_name.get()
-        
-        odor_valves = [] 
+
+        odor_valves = []
         odor_names = []
         for idx in range(13):
-            
+
             odor_valve_number = self.__getattribute__(
                 "odor{}_valve_number".format(idx+1)
             ).get()
@@ -2696,11 +2770,11 @@ class LambdaApp():
             self.lambda_imaging_mode["stage_xy_limit"] = -1
             self.lambda_imaging_mode["stage_max_velocities"][0] = -1
             self.lambda_imaging_mode["stage_max_velocities"][1] = -1
-        
+
         try:
             self.client.process("GET microfluidic_device")
             rep = eval(self.client.reply)
-            self.lambda_microfluidic_mode["cycle"] = rep["cycle"] 
+            self.lambda_microfluidic_mode["cycle"] = rep["cycle"]
             self.lambda_microfluidic_mode["buffer_time"] = rep["buffer_time"]
             self.lambda_microfluidic_mode["odor_time"] = rep["odor_time"]
             self.lambda_microfluidic_mode["initial_time"] = rep["initial_time"]
@@ -2711,7 +2785,7 @@ class LambdaApp():
             self.lambda_microfluidic_mode["odor_valves"] = rep["odor_valves"]
             self.lambda_microfluidic_mode["buffer_name"] = rep["buffer_name"]
             self.lambda_microfluidic_mode["control1_name"] = rep["control1_name"]
-            self.lambda_microfluidic_mode["control2_name"] = rep["control2_name"] 
+            self.lambda_microfluidic_mode["control2_name"] = rep["control2_name"]
             self.lambda_microfluidic_mode["odor_names"] = rep["odor_names"]
         except Exception as e:
             print("Error from microfluidic device: {}".format(e))
@@ -2723,11 +2797,11 @@ class LambdaApp():
             self.lambda_microfluidic_mode["buffer_valve_number"] = -1
             self.lambda_microfluidic_mode["control1_valve_number"] = -1
             self.lambda_microfluidic_mode["control2_valve_number"] = -1
-            self.lambda_microfluidic_mode["odor_valves"] = []
+            self.lambda_microfluidic_mode["odor_valves"] = [-1] * 13
             self.lambda_microfluidic_mode["buffer_name"] = ""
             self.lambda_microfluidic_mode["control1_name"] = ""
             self.lambda_microfluidic_mode["control2_name"] = ""
-            self.lambda_microfluidic_mode["odor_names"] = []
+            self.lambda_microfluidic_mode["odor_names"] = [""] * 13
 
     def switch_microfluidic_experiment_entries(self):
         if self.microfluidic_experiment.get():
@@ -2759,7 +2833,7 @@ class LambdaApp():
         self.control1_name_entry.config(state=state)
         self.control2_name_entry.config(state=state)
         self.odor1_name_entry.config(state=state)
-        self.odor2_name_entry.config(state=state) 
+        self.odor2_name_entry.config(state=state)
         self.odor3_name_entry.config(state=state)
         self.odor4_name_entry.config(state=state)
         self.odor5_name_entry.config(state=state)
