@@ -76,65 +76,65 @@ def execute(job, fmt: str, zyla_camera: str):
                       "--inbound=" + ibound,
                       "--outbound=" + obound]))
 
-    # job.append(Popen(["lambda_logger",
-    #                   "--inbound=" + obound,
-    #                   "--directory=" + logger_directory]))
+    job.append(Popen(["lambda_logger",
+                      "--inbound=" + obound,
+                      "--directory=" + logger_directory]))
 
-    # job.append(Popen(["lambda_dragonfly",
-    #                   "--inbound=L" + obound,
-    #                   "--outbound=L" + ibound,
-    #                   "--port=" + dragonfly_usb_port]))
+    job.append(Popen(["lambda_dragonfly",
+                      "--inbound=L" + obound,
+                      "--outbound=L" + ibound,
+                      "--port=" + dragonfly_usb_port]))
 
-    # job.append(Popen(["lambda_acquisition_board",
-    #                   "--commands_in=L" + obound,
-    #                   "--status_out=L" + ibound,
-    #                   "--format=" + fmt,
-    #                   "--serial_num_daq1=" + serial_num_las_daq,
-    #                   "--serial_num_daq0=" + serial_num_cam_daq]))
+    job.append(Popen(["lambda_acquisition_board",
+                      "--commands_in=L" + obound,
+                      "--status_out=L" + ibound,
+                      "--format=" + fmt,
+                      "--serial_num_daq1=" + serial_num_las_daq,
+                      "--serial_num_daq0=" + serial_num_cam_daq]))
 
     job.append(Popen(["lambda_microfluidic",
                       "--inbound=L" + obound,
                       "--outbound=L"+ ibound]))
 
-    # for i, camera_number in enumerate(zyla_cameras):
+    for i, camera_number in enumerate(zyla_cameras):
 
-    #     job.append(Popen(["lambda_displayer",
-    #                       "--inbound=L" + str(data_stamped + i),
-    #                       "--format=" + fmt,
-    #                       "--commands=L" + obound,
-    #                       "--name=top_displayer"+ str(camera_number)]))
+        job.append(Popen(["lambda_displayer",
+                          "--inbound=L" + str(data_stamped + i),
+                          "--format=" + fmt,
+                          "--commands=L" + obound,
+                          "--name=top_displayer"+ str(camera_number)]))
 
-    #     job.append(Popen(["lambda_data_hub",
-    #                       "--data_in=L" + str(data_cam + i),
-    #                       "--commands_in=L" + obound,
-    #                       "--data_out=" + str(data_stamped + i),
-    #                       "--status_out=L" + ibound,
-    #                       "--format=" + fmt,
-    #                       "--name=data_hub"+ str(camera_number)]))
+        job.append(Popen(["lambda_data_hub",
+                          "--data_in=L" + str(data_cam + i),
+                          "--commands_in=L" + obound,
+                          "--data_out=" + str(data_stamped + i),
+                          "--status_out=L" + ibound,
+                          "--format=" + fmt,
+                          "--name=data_hub"+ str(camera_number)]))
 
-    #     job.append(Popen(["lambda_writer",
-    #                       "--data_in=L" + str(data_stamped + i),
-    #                       "--commands_in=L" + obound,
-    #                       "--status_out=L" + ibound,
-    #                       "--format=" + fmt,
-    #                       "--saving_mode=" + saving_mode,
-    #                       "--directory="+ data_directory,
-    #                       "--video_name=camera" + str(camera_number),
-    #                       "--name=writer"+ str(camera_number)]))
+        job.append(Popen(["lambda_writer",
+                          "--data_in=L" + str(data_stamped + i),
+                          "--commands_in=L" + obound,
+                          "--status_out=L" + ibound,
+                          "--format=" + fmt,
+                          "--saving_mode=" + saving_mode,
+                          "--directory="+ data_directory,
+                          "--video_name=camera" + str(camera_number),
+                          "--name=writer"+ str(camera_number)]))
 
-    #     if i == 1:
-    #         time.sleep(15)
+        if i == 1:
+            time.sleep(15)
 
-    #     job.append(Popen(["AndorZylaCamera",
-    #                       "--data=*:" + str(data_cam + i),
-    #                       "--commands=localhost:" + obound,
-    #                       "--status=localhost:" + ibound,
-    #                       "--serial_number=" + serial_number[int(camera_number)-1],
-    #                       "--trigger_mode=" + trigger_mode,
-    #                       "--stack_size=" + str(shape[0]),
-    #                       "--y_shape=" + str(shape[1]),
-    #                       "--x_shape=" + str(shape[2]),
-    #                       "--name=ZylaCamera"+str(camera_number)]))
+        job.append(Popen(["AndorZylaCamera",
+                          "--data=*:" + str(data_cam + i),
+                          "--commands=localhost:" + obound,
+                          "--status=localhost:" + ibound,
+                          "--serial_number=" + serial_number[int(camera_number)-1],
+                          "--trigger_mode=" + trigger_mode,
+                          "--stack_size=" + str(shape[0]),
+                          "--y_shape=" + str(shape[1]),
+                          "--x_shape=" + str(shape[2]),
+                          "--name=ZylaCamera"+str(camera_number)]))
 
 def run(fmt: str, zyla_camera: str):
     """Run all system devices."""
