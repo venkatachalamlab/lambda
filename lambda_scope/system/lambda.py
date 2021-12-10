@@ -52,8 +52,10 @@ def execute(job, fmt: str, zyla_camera: str):
     data_stamped = 5005
 
     (_, _, shape) = array_props_from_string(fmt)
+    bin_size = max(2048//shape[1], 2048//shape[2])
 
-    serial_number = ["VSC-09002", "VSC-08793"]
+    # serial_number = ["VSC-09002", "VSC-08793"]
+    serial_number = ["VSC-10155", "VSC-12515"]
 
     job.append(Popen(["lambda_hub",
                       "--inbound=L" + obound,
@@ -79,6 +81,7 @@ def execute(job, fmt: str, zyla_camera: str):
     job.append(Popen(["lambda_logger",
                       "--inbound=" + obound,
                       "--directory=" + logger_directory]))
+
 
     job.append(Popen(["lambda_dragonfly",
                       "--inbound=L" + obound,
@@ -134,6 +137,7 @@ def execute(job, fmt: str, zyla_camera: str):
                           "--stack_size=" + str(shape[0]),
                           "--y_shape=" + str(shape[1]),
                           "--x_shape=" + str(shape[2]),
+                          "--bin_size=" + str(bin_size),
                           "--name=ZylaCamera"+str(camera_number)]))
 
 def run(fmt: str, zyla_camera: str):

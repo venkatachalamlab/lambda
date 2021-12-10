@@ -80,6 +80,7 @@ class LambdaApp():
         self.lambda_imaging_mode["zyla_camera_trigger_mode"] = zyla_camera_trigger_mode
         self.lambda_imaging_mode["dragonfly_imaging_mode"] = 1
         self.lambda_imaging_mode["top_microscope_data_shape"] = [shape[0], shape[1], shape[2]]
+        self.lambda_imaging_mode["top_microscope_bin_size"] = 4
         self.lambda_imaging_mode["z_resolution_in_um"] = 1
         self.lambda_imaging_mode["zyla_camera_exposure_time_in_ms"] = 10
         self.lambda_imaging_mode["laser_power"] = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
@@ -88,6 +89,7 @@ class LambdaApp():
         self.lambda_imaging_mode["filter2"] = 4
         self.lambda_imaging_mode["total_volume"] = 1
         self.lambda_imaging_mode["rest_time"] = 0
+        self.lambda_imaging_mode["bot_microscope_bin_size"] = 2
         self.lambda_imaging_mode["bot_microscope_data_shape"] = [1, 512, 512]
         self.lambda_imaging_mode["tracker_crop_size"] = 300
         self.lambda_imaging_mode["tracker_feature_size"] = 2500
@@ -143,9 +145,11 @@ class LambdaApp():
         self.top_microscope_data_shape_z = tkinter.StringVar()
         self.top_microscope_data_shape_y = tkinter.StringVar()
         self.top_microscope_data_shape_x = tkinter.StringVar()
+        self.top_microscope_bin_size = tkinter.StringVar()
         self.bot_microscope_data_shape_z = tkinter.StringVar()
         self.bot_microscope_data_shape_y = tkinter.StringVar()
         self.bot_microscope_data_shape_x = tkinter.StringVar()
+        self.bot_microscope_bin_size = tkinter.StringVar()
         self.tracker_camera_source = tkinter.StringVar()
         self.flir_camera_exposure = tkinter.StringVar()
         self.flir_camera_rate = tkinter.StringVar()
@@ -228,9 +232,11 @@ class LambdaApp():
         self.top_microscope_data_shape_z.set("25")
         self.top_microscope_data_shape_y.set("512")
         self.top_microscope_data_shape_x.set("512")
+        self.top_microscope_bin_size.set("4")
         self.bot_microscope_data_shape_z.set("1")
         self.bot_microscope_data_shape_y.set("512")
         self.bot_microscope_data_shape_x.set("512")
+        self.bot_microscope_bin_size.set("2")
         self.tracker_camera_source.set("1")
         self.flir_camera_exposure.set("25000.0")
         self.flir_camera_rate.set("39.0")
@@ -386,6 +392,11 @@ class LambdaApp():
             textvariable=self.top_microscope_data_shape_x,
             width=4
         )
+        self.top_microscope_bin_size_entry = tkinter.Entry(
+            self.window,
+            textvariable=self.top_microscope_bin_size,
+            width=4
+        )
         self.bot_microscope_data_shape_z_entry = tkinter.Entry(
             self.window,
             textvariable=self.bot_microscope_data_shape_z,
@@ -401,6 +412,12 @@ class LambdaApp():
             self.window,
             textvariable=self.bot_microscope_data_shape_x,
             width=4
+        )
+        self.bot_microscope_bin_size_entry = tkinter.Entry(
+            self.window,
+            textvariable=self.bot_microscope_bin_size,
+            width=4,
+            state='disabled'
         )
         self.tracker_camera_source_entry = tkinter.Entry(
             self.window,
@@ -743,7 +760,7 @@ class LambdaApp():
         self.ready_busy_button = tkinter.Button(
             self.window,
             bg="green",
-            # state="disabled",
+            state="disabled",
             width=3
         )
 
@@ -861,6 +878,10 @@ class LambdaApp():
         self.shape_x = tkinter.Label(
             self.window,
             text = "x"
+        )
+        self.bin = tkinter.Label(
+            self.window,
+            text = "bin"
         )
         self.bottom_microscope = tkinter.Label(
             self.window,
@@ -1145,6 +1166,10 @@ class LambdaApp():
             lambda _: self.update_gui_mode()
         )
         self.top_microscope_data_shape_x_entry.bind(
+            '<Return>',
+            lambda _: self.update_gui_mode()
+        )
+        self.top_microscope_bin_size_entry.bind(
             '<Return>',
             lambda _: self.update_gui_mode()
         )
@@ -1486,7 +1511,10 @@ class LambdaApp():
             y = 6 * self.y_spacing + 5 * y1
         )
 
-        x3 = self.shape_x.winfo_reqwidth()
+        x3 = max(
+            self.shape_x.winfo_reqwidth(),
+            self.bin.winfo_reqwidth()
+        )
         x4 = self.top.winfo_reqwidth()
         x5 = self.bottom.winfo_reqwidth()
         x6 = 6 * self.x_spacing + x1 + 4 * x2 + 10 * self.x_spacing
@@ -1515,6 +1543,10 @@ class LambdaApp():
             x = x6,
             y = 5 * self.y_spacing + 4 * y1
         )
+        self.bin.place(
+            x = x6,
+            y = 6 * self.y_spacing + 5 * y1
+        )
         self.top_microscope_data_shape_z_entry.place(
             x= 1 * self.x_spacing + x6 + x3,
             y= 3 * self.y_spacing + 2 * y1
@@ -1527,6 +1559,10 @@ class LambdaApp():
             x= 1 * self.x_spacing + x6 + x3,
             y= 5 * self.y_spacing + 4 * y1
         )
+        self.top_microscope_bin_size_entry.place(
+            x= 1 * self.x_spacing + x6 + x3,
+            y= 6 * self.y_spacing + 5 * y1
+        )
         self.bot_microscope_data_shape_z_entry.place(
             x= 2 * self.x_spacing + x6 + x3 + x4,
             y= 3 * self.y_spacing + 2 * y1
@@ -1538,6 +1574,10 @@ class LambdaApp():
         self.bot_microscope_data_shape_x_entry.place(
             x= 2 * self.x_spacing + x6 + x3 + x4,
             y= 5 * self.y_spacing + 4 * y1
+        )
+        self.bot_microscope_bin_size_entry.place(
+            x= 2 * self.x_spacing + x6 + x3 + x4,
+            y= 6 * self.y_spacing + 5 * y1
         )
 
         x7 = 3 * self.x_spacing + x6 + x3 + x4 + x5 + 10 * self.x_spacing
@@ -2409,6 +2449,7 @@ class LambdaApp():
         self.top_microscope_data_shape_z.set(mode["top_microscope_data_shape"][0])
         self.top_microscope_data_shape_y.set(mode["top_microscope_data_shape"][1])
         self.top_microscope_data_shape_x.set(mode["top_microscope_data_shape"][2])
+        self.top_microscope_bin_size.set(mode["top_microscope_bin_size"])
         self.z_resolution_in_um.set(mode["z_resolution_in_um"])
         self.zyla_camera_exposure_time_in_ms.set(mode["zyla_camera_exposure_time_in_ms"])
         self.laser_405_vol_1.set(mode["laser_power"][0][0])
@@ -2435,6 +2476,7 @@ class LambdaApp():
         self.bot_microscope_data_shape_z.set(mode["bot_microscope_data_shape"][0])
         self.bot_microscope_data_shape_y.set(mode["bot_microscope_data_shape"][1])
         self.bot_microscope_data_shape_x.set(mode["bot_microscope_data_shape"][2])
+        self.bot_microscope_bin_size.set(mode["bot_microscope_bin_size"])
         self.bot_microscope_saving_mode.set(mode["bot_microscope_saving_mode"])
         self.tracker_crop_size.set(mode["tracker_crop_size"])
         self.tracker_feature_size.set(mode["tracker_feature_size"])
@@ -2513,6 +2555,7 @@ class LambdaApp():
         self.client.process("DO _writer_set_saving_mode {}".format(self.gui_imaging_mode["top_microscope_saving_mode"]))
         self.client.process("DO _zyla_camera_set_trigger_mode {}".format(self.gui_imaging_mode["zyla_camera_trigger_mode"]))
         self.client.process("DO _dragonfly_set_imaging_mode {}".format(self.gui_imaging_mode["dragonfly_imaging_mode"]))
+        self.client.process("DO _zyla_camera_set_binning {}".format(self.gui_imaging_mode["top_microscope_bin_size"]))
         self.client.process("DO _zyla_camera_set_shape {} {} {}".format(self.gui_imaging_mode["top_microscope_data_shape"][0],
                                                                          self.gui_imaging_mode["top_microscope_data_shape"][1],
                                                                          self.gui_imaging_mode["top_microscope_data_shape"][2]))
@@ -2598,6 +2641,7 @@ class LambdaApp():
         self.gui_imaging_mode["top_microscope_saving_mode"] = self.top_microscope_saving_mode.get()
         self.gui_imaging_mode["zyla_camera_trigger_mode"] = self.zyla_camera_trigger_mode.get()
         self.gui_imaging_mode["dragonfly_imaging_mode"] = self.dragonfly_imaging_mode.get()
+        self.gui_imaging_mode["top_microscope_bin_size"] = int(self.top_microscope_bin_size.get())
         self.gui_imaging_mode["top_microscope_data_shape"] = [int(self.top_microscope_data_shape_z.get()),
                                                       int(self.top_microscope_data_shape_y.get()),
                                                       int(self.top_microscope_data_shape_x.get())]
@@ -2685,10 +2729,19 @@ class LambdaApp():
             elif rep["trigger"] == "Internal":
                 self.lambda_imaging_mode["zyla_camera_trigger_mode"] = 1
             self.lambda_imaging_mode["top_microscope_data_shape"] = rep["shape"]
+            if int(rep["binning"][0]) == 1:
+                self.lambda_imaging_mode["top_microscope_bin_size"] = 1
+            elif int(rep["binning"][0]) == 2:
+                self.lambda_imaging_mode["top_microscope_bin_size"] = 2
+            elif int(rep["binning"][0]) == 4:
+                self.lambda_imaging_mode["top_microscope_bin_size"] = 4
+            elif int(rep["binning"][0]) == 8:
+                self.lambda_imaging_mode["top_microscope_bin_size"] = 8
         except Exception as e:
             print("Error from zyla camera: {}".format(e))
             self.lambda_imaging_mode["zyla_camera_trigger_mode"] = -1
             self.lambda_imaging_mode["top_microscope_data_shape"] = [-1, -1, -1]
+            self.lambda_imaging_mode["top_microscope_bin_size"] = -1
 
         try:
             self.client.process("GET dragonfly")
@@ -2976,6 +3029,11 @@ class LambdaApp():
             self.gui_imaging_mode["top_microscope_data_shape"][2],
             self.lambda_imaging_mode["top_microscope_data_shape"][2],
             self.top_microscope_data_shape_x_entry
+        )
+        self._decide_color(
+            self.gui_imaging_mode["top_microscope_bin_size"],
+            self.lambda_imaging_mode["top_microscope_bin_size"],
+            self.top_microscope_bin_size_entry
         )
         self._decide_color(
             self.gui_imaging_mode["z_resolution_in_um"],
@@ -3312,19 +3370,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
-
-
-# if __name__ == '__main__':
-#     #test the dialog
-#     root=Tk()
-#     def run():
-#         values = ['Red','Green','Blue','Yellow']
-#         dlg = OptionDialog(root,'TestDialog',"Select a color",values)
-#         print(dlg.result)
-#     Button(root,text='Dialog',command=run).pack()
-#     root.mainloop()

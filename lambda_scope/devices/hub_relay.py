@@ -309,6 +309,10 @@ class LambdaHub(Hub):
             name = "stage_writer{}".format(i)
             self.send("{} publish_status".format(name))
 
+    def _zyla_camera_set_binning(self, bin_size):
+        for i in self.zyla_cameras:
+            name = "ZylaCamera{}".format(i)
+            self.send("{} set_binning {}".format(name, bin_size))
 
     def _zyla_camera_set_shape(self, z, y, x):
         for i in self.zyla_cameras:
@@ -445,7 +449,7 @@ class LambdaHub(Hub):
 
     def _microfluidic_device_set_odor_valve(self, idx, valve_number):
         self.send("microfluidic_device set_odor_valve {} {}".format(idx, valve_number))
-    
+
     def _microfluidic_device_set_odor_name(self, *args):
         self.send("microfluidic_device set_odor_name " + " ".join(map(str, args)))
 

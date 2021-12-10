@@ -199,7 +199,7 @@ class DataHub():
         cam_start = 0
 
         t0 = time.time()
-        self.publisher.send("hub _camera_stop")
+        self.publisher.send("hub _zyla_camera_stop")
         self.publisher.send("hub _daq_laser_stop")
 
         while self.interruption_status:
@@ -210,7 +210,7 @@ class DataHub():
                 daq_stop = 1
 
             elif not cam_start and t >= (self.resting_time-0.5):
-                self.publisher.send("hub _camera_start")
+                self.publisher.send("hub _zyla_camera_start")
                 cam_start = 1
 
             elif t >= self.resting_time:
