@@ -20,6 +20,7 @@ Options:
 """
 
 import os
+import re
 import json
 import time
 import tkinter
@@ -2660,6 +2661,7 @@ class LambdaApp():
         self.gui_imaging_mode["filter2"] = int(self.filter2.get())
         self.gui_imaging_mode["total_volume"] = int(self.total_volume.get())
         self.gui_imaging_mode["rest_time"] = int(self.rest_time.get())
+        self.gui_imaging_mode["bot_microscope_bin_size"] = int(self.bot_microscope_bin_size.get())
         self.gui_imaging_mode["bot_microscope_data_shape"] = [int(self.bot_microscope_data_shape_z.get()),
                                                       int(self.bot_microscope_data_shape_y.get()),
                                                       int(self.bot_microscope_data_shape_x.get())]
@@ -3344,13 +3346,14 @@ class LambdaApp():
 
 
 def get_array_from_str(string):
-        list_ = string[1:-1].split(" ")
-        out = []
-        for element in list_:
-            if element[-1]=='.':
-                element = element[:-1]
-            out.append(float(element))
-        return out
+    string = re.sub(' +', ' ', string)
+    list_ = string[1:-1].split(" ")
+    out = []
+    for element in list_:
+        if element[-1]=='.':
+            element = element[:-1]
+        out.append(float(element))
+    return out
 
 
 
