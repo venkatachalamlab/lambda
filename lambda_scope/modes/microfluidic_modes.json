@@ -84,48 +84,5 @@
             0,
             0
         ]
-    },
-    "channel_alignment": {
-        "cycle": 1,
-        "buffer_time": 30.0,
-        "odor_time": 15.0,
-        "initial_time": 60.0,
-        "buffer_valve": 1,
-        "buffer_name": "",
-        "control1_valve": 2,
-        "control2_valve": 3,
-        "randomized": 0,
-        "control1_name": "",
-        "control2_name": "",
-        "odor_names": [
-            "Fluorescein",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            ""
-        ],
-        "odor_valves": [
-            4,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-        ]
     }
 }

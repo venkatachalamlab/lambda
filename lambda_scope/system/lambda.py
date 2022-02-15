@@ -98,6 +98,11 @@ def execute(job, fmt: str, zyla_camera: str):
                       "--inbound=L" + obound,
                       "--outbound=L"+ ibound]))
 
+    job.append(Popen(["AndorILE",
+                      "--commands=localhost:" + obound,
+                      "--status=localhost:" + ibound,
+                      "--name=AndorILE"]))
+
     for i, camera_number in enumerate(zyla_cameras):
 
         job.append(Popen(["lambda_displayer",
