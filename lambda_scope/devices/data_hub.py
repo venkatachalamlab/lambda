@@ -173,6 +173,9 @@ class DataHub():
             self.data_publisher.send(vol)
         else:
             if self.taken_volumes < self.imaging_volumes:
+                if self.resting_time == 111 and self.taken_volumes == 1:
+                    self.publisher.send("hub _dragonfly_set_filter 1 8")
+                    self.publisher.send("hub _dragonfly_set_filter 2 1")
                 self.data_publisher.send(vol)
                 self.taken_volumes += 1
                 # if self.taken_volumes >= 120 and self.taken_volumes < 240:
