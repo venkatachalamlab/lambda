@@ -130,9 +130,13 @@ void SpinnakerCamera::set_Offset(void)
 		Spinnaker::GenApi::INodeMap & nodeMap = ptrCamera->GetNodeMap();
 		Spinnaker::GenApi::CIntegerPtr ptrOffsetX = nodeMap.GetNode("OffsetX");
 		Spinnaker::GenApi::CIntegerPtr ptrOffsetY = nodeMap.GetNode("OffsetY");
+		Spinnaker::GenApi::CIntegerPtr ptrWidth = nodeMap.GetNode("Width");
+		Spinnaker::GenApi::CIntegerPtr ptrHeight = nodeMap.GetNode("Height");
 
-		OffsetY = (600 / VerticalBinSize) - (Height / 2);
-		OffsetX = (960 / HorizontalBinSize) - (Width / 2);
+		OffsetY = (ptrHeight->GetMax() / 2) - (Height / 2);
+		OffsetX = (ptrWidth->GetMax() / 2) - (Width / 2);
+		DEBUG("FlirCamera #" << ptrHeight->GetMax() << ":" << ptrWidth->GetMax());
+
 
 		ptrOffsetX->SetValue(OffsetX);
 		ptrOffsetY->SetValue(OffsetY);

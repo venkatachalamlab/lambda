@@ -75,10 +75,10 @@ class PIDController():
         self.Ex = 0.0
         self.Ey = 0.0
 
+        self.dt = dt
+
         self.Ix = 0.0
         self.Iy = 0.0
-
-        self.dt = dt
 
         self.axes_correction = np.array([[[1, 0], [0, -1]],
                                          [[0, 1], [1, 0]]])
@@ -106,14 +106,14 @@ class PIDController():
         Px = self.Kp * Ex
         Py = self.Kp * Ey
 
-        self.Ix = self.Ix + self.Ki * Ex * self.dt
-        self.Iy = self.Iy + self.Ki * Ey * self.dt
+        self.Ix = self.Ix + self.Ki * (Ex + self.Ex) * self.dt / 2
+        self.Iy = self.Iy + self.Ki * (Ey + self.Ey) * self.dt / 2
 
         Dx = self.Kd * (Ex - self.Ex) / self.dt
         Dy = self.Kd * (Ey - self.Ey) / self.dt
 
-        Vx = Px + int(self.Ix + Dx)
-        Vy = Py + int(self.Iy + Dy)
+        Vx = int(Px + self.Ix + Dx)
+        Vy = int(Py + self.Iy + Dy)
 
         self.Ex = Ex
         self.Ey = Ey

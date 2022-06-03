@@ -60,7 +60,7 @@ class TrackerDevice():
         self.out = np.zeros(self.shape, dtype=self.dtype)
 
         self.tracker = ObjectDetector(self.shape)
-        self.pid = PIDController(1.5, 0.0, 0.0,
+        self.pid = PIDController(10, 0.0, 0.0,
                                  self.shape[2] // 2, self.shape[1] // 2,
                                  1, 0.025)
 
@@ -103,6 +103,11 @@ class TrackerDevice():
         time.sleep(1)
         self.publish_status()
 
+    def set_pid(self, Kp, Ki, Kd):
+        self.pid = PIDController(Kp, Ki, Kd,
+                                 self.shape[2] // 2, self.shape[1] // 2,
+                                 1, 0.025)
+
     def process(self):
         """This processes the incoming images and sends move commands to zaber."""
         _, data = self.data_subscriber.get_last()
@@ -124,9 +129,8 @@ class TrackerDevice():
         self.out[0, ...] = img
         self.data_publisher.send(self.out)
 
-        vel = self.pid.get_velocity(self.tracker.bbox)
-
         if self.tracking:
+            vel = self.pid.get_velocity(self.tracker.bbox)
             self.command_publisher.send(
                 "zaber vel_xy {} {}".format(vel[0], vel[1]))
             self.command_publisher.send("zaber update_position")
@@ -186,6 +190,8 @@ class TrackerDevice():
     def start(self):
         """Start subscribing to image data."""
         if not self.tracking:
+            self.pid.Ix = 0
+            self.pid.Iy = 0
             self.tracking = 1
             self.publish_status()
 
