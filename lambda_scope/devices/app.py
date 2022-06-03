@@ -20,6 +20,7 @@ Options:
 """
 
 import os
+import re
 import json
 import time
 import tkinter
@@ -97,7 +98,7 @@ class LambdaApp():
         self.lambda_imaging_mode["stage_xy_limit"] = 10000
         self.lambda_imaging_mode["flir_camera_exposure_and_rate"] = [flir_exposure, int(1000000 / (1.02 * flir_exposure))]
         self.lambda_imaging_mode["stage_max_velocities"] = [1000, 1000]
-
+        self.lambda_imaging_mode["low_power_status"] = 0
         self.lambda_microfluidic_mode["cycle"] = 1
         self.lambda_microfluidic_mode["buffer_time"] = 30.0
         self.lambda_microfluidic_mode["odor_time"] = 15.0
@@ -171,6 +172,7 @@ class LambdaApp():
         self.bot_microscope_saving_mode = tkinter.IntVar()
         self.imaging_mode_name_to_load = tkinter.StringVar()
         self.microfluidic_mode_name_to_load = tkinter.StringVar()
+        self.low_power_status = tkinter.IntVar()
         self.reply = tkinter.StringVar()
 
         self.cycle = tkinter.StringVar()
@@ -256,6 +258,7 @@ class LambdaApp():
         self.top_microscope_saving_mode.set(0)
         self.laser_output_repeat.set(0)
         self.bot_microscope_saving_mode.set(0)
+        self.low_power_status.set(0)
         self.reply.set("")
 
         self.cycle.set("1")
@@ -793,6 +796,12 @@ class LambdaApp():
             self.window, text="top microscope saving mode",
             offvalue=0, onvalue=1,
             variable=self.top_microscope_saving_mode,
+            command=self.update_gui_mode
+        )
+        self.low_power_status_check_button = tkinter.Checkbutton(
+            self.window, text="Set ND filter (reduces power by a factor of 10)",
+            offvalue=0, onvalue=1,
+            variable=self.low_power_status,
             command=self.update_gui_mode
         )
         self.bot_microscope_saving_mode_check_button = tkinter.Checkbutton(
@@ -1509,6 +1518,10 @@ class LambdaApp():
         self.laser_640_vol_4_entry.place(
             x = 5 * self.x_spacing + x1 + 3 * x2,
             y = 6 * self.y_spacing + 5 * y1
+        )
+        self.low_power_status_check_button.place(
+            x = 2 * self.x_spacing + x1,
+            y = 7 * self.y_spacing + 6 * y1
         )
 
         x3 = max(
@@ -2478,6 +2491,7 @@ class LambdaApp():
         self.bot_microscope_data_shape_x.set(mode["bot_microscope_data_shape"][2])
         self.bot_microscope_bin_size.set(mode["bot_microscope_bin_size"])
         self.bot_microscope_saving_mode.set(mode["bot_microscope_saving_mode"])
+        self.low_power_status.set(mode["low_power_status"])
         self.tracker_crop_size.set(mode["tracker_crop_size"])
         self.tracker_feature_size.set(mode["tracker_feature_size"])
         self.tracker_camera_source.set(mode["tracker_camera_source"])
@@ -2553,6 +2567,7 @@ class LambdaApp():
         self.client.process("DO _daq_set_exposure_time {}".format(self.gui_imaging_mode["zyla_camera_exposure_time_in_ms"]))
         self.client.process("DO _daq_set_las_continuous {}".format(self.gui_imaging_mode["laser_output_repeat"]))
         self.client.process("DO _writer_set_saving_mode {}".format(self.gui_imaging_mode["top_microscope_saving_mode"]))
+        self.client.process("DO _Andor_ILE_set_nd_filter {}".format(self.gui_imaging_mode["low_power_status"]))
         self.client.process("DO _zyla_camera_set_trigger_mode {}".format(self.gui_imaging_mode["zyla_camera_trigger_mode"]))
         self.client.process("DO _dragonfly_set_imaging_mode {}".format(self.gui_imaging_mode["dragonfly_imaging_mode"]))
         self.client.process("DO _zyla_camera_set_binning {}".format(self.gui_imaging_mode["top_microscope_bin_size"]))
@@ -2639,6 +2654,7 @@ class LambdaApp():
 
     def _update_gui_mode(self):
         self.gui_imaging_mode["top_microscope_saving_mode"] = self.top_microscope_saving_mode.get()
+        self.gui_imaging_mode["low_power_status"] = self.low_power_status.get()
         self.gui_imaging_mode["zyla_camera_trigger_mode"] = self.zyla_camera_trigger_mode.get()
         self.gui_imaging_mode["dragonfly_imaging_mode"] = self.dragonfly_imaging_mode.get()
         self.gui_imaging_mode["top_microscope_bin_size"] = int(self.top_microscope_bin_size.get())
@@ -2660,6 +2676,7 @@ class LambdaApp():
         self.gui_imaging_mode["filter2"] = int(self.filter2.get())
         self.gui_imaging_mode["total_volume"] = int(self.total_volume.get())
         self.gui_imaging_mode["rest_time"] = int(self.rest_time.get())
+        self.gui_imaging_mode["bot_microscope_bin_size"] = int(self.bot_microscope_bin_size.get())
         self.gui_imaging_mode["bot_microscope_data_shape"] = [int(self.bot_microscope_data_shape_z.get()),
                                                       int(self.bot_microscope_data_shape_y.get()),
                                                       int(self.bot_microscope_data_shape_x.get())]
@@ -2710,6 +2727,14 @@ class LambdaApp():
         except Exception as e:
             print("Error from top writer: {}".format(e))
             self.lambda_imaging_mode["top_microscope_saving_mode"] = -1
+
+        try:
+            self.client.process("GET AndorILE")
+            rep = eval(self.client.reply)
+            self.lambda_imaging_mode["low_power_status"] = int(rep["low_power"])
+        except Exception as e:
+            print("Error from AndorILE: {}".format(e))
+            self.lambda_imaging_mode["low_power_status"] = -1
 
         try:
             self.client.process("GET stage_writer1")
@@ -2944,6 +2969,11 @@ class LambdaApp():
             self.gui_imaging_mode["bot_microscope_saving_mode"],
             self.lambda_imaging_mode["bot_microscope_saving_mode"],
             self.bot_microscope_saving_mode_check_button
+        )
+        self._decide_color(
+            self.gui_imaging_mode["low_power_status"],
+            self.lambda_imaging_mode["low_power_status"],
+            self.low_power_status_check_button
         )
         self._decide_color(
             self.gui_imaging_mode["tracker_crop_size"],
@@ -3344,13 +3374,16 @@ class LambdaApp():
 
 
 def get_array_from_str(string):
-        list_ = string[1:-1].split(" ")
-        out = []
-        for element in list_:
+    string = re.sub(' +', ' ', string)
+    list_ = string[1:-1].split(" ")
+
+    out = []
+    for element in list_:
+        if len(element)>0:
             if element[-1]=='.':
                 element = element[:-1]
             out.append(float(element))
-        return out
+    return out
 
 
 

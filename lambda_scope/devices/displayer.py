@@ -51,12 +51,17 @@ class Displayer:
         (self.dtype, _, self.shape) = array_props_from_string(fmt)
         self.mip_image = np.zeros((self.shape[1] + 4 * self.shape[0],
                                    self.shape[2] + 4 * self.shape[0]), self.dtype)
+        self.yx_ratio = self.mip_image.shape[0] / self.mip_image.shape[1]
         self.dtype_max = np.iinfo(self.dtype).max
-        self.displayer_shape = self.mip_image.shape
+
 
         self.screen_width = GetSystemMetrics(0)
         self.screen_height = GetSystemMetrics(1)
 
+        self.displayer_shape = [int(self.yx_ratio * self.screen_height // 2),
+                                int(self.screen_height // 2)]
+        self.displayed_img = cv2.resize(self.mip_image,
+                                        (self.displayer_shape[1], self.displayer_shape[0]))
         self.name = name
         self.running = True
         self.inbound = inbound
@@ -82,12 +87,12 @@ class Displayer:
         self.poller.register(self.data_subscriber.socket, zmq.POLLIN)
 
         try:
-            self.sign = (-1) ** int(self.name[-1])
+            self.sign = int(self.name[-1])
         except:
             self.sign =  0
 
-        self.corner_x = int((self.screen_width - self.mip_image.shape[1]) / 2 + self.sign * 1.2 * self.mip_image.shape[1])
-        self.corner_y = int(self.screen_height - 1.2 * self.mip_image.shape[0])
+        self.corner_x = int((self.sign%2) * self.screen_width // 2)
+        self.corner_y = int(0.3 * self.screen_height)
 
         cv2.namedWindow(self.name)
         cv2.moveWindow(self.name, self.corner_x, self.corner_y)
@@ -108,11 +113,15 @@ class Displayer:
 
         self.mip_image = np.zeros((self.shape[1] + 4 * self.shape[0],
                                    self.shape[2] + 4 * self.shape[0]), np.uint8)
-        self.displayer_shape = self.mip_image.shape
+        self.yx_ratio = self.mip_image.shape[0] / self.mip_image.shape[1]
+        self.displayer_shape = [int(self.yx_ratio * self.screen_height // 2),
+                                int(self.screen_height // 2)]
+        self.displayed_img = cv2.resize(self.mip_image,
+                                        (self.displayer_shape[1], self.displayer_shape[0]))
         self.poller.register(self.data_subscriber.socket, zmq.POLLIN)
 
-        self.corner_x = int((self.screen_width - self.mip_image.shape[1]) / 2 + self.sign * 1.2 * self.mip_image.shape[1])
-        self.corner_y = int(self.screen_height - 1.2 * self.mip_image.shape[0])
+        self.corner_x = int((self.sign%2) * self.screen_width // 2)
+        self.corner_y = int(0.3 * self.screen_height)
 
         cv2.namedWindow(self.name)
         cv2.moveWindow(self.name, self.corner_x, self.corner_y)
@@ -138,7 +147,10 @@ class Displayer:
             self.mip_image[:self.shape[1], self.shape[2]:] = t_scaled_mip_x
             self.mip_image[self.shape[1]:, :self.shape[2]] = scaled_mip_y
 
-        cv2.imshow(self.name, self.mip_image)
+            self.displayed_img = cv2.resize(self.mip_image,
+                                            (self.displayer_shape[1], self.displayer_shape[0]))
+
+        cv2.imshow(self.name, self.displayed_img)
         cv2.waitKey(1)
 
     def run(self):

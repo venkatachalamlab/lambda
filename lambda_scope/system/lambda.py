@@ -37,7 +37,7 @@ def execute(job, fmt: str, zyla_camera: str):
     saving_mode = "0"
     trigger_mode = "2"
     flir_exposure = "25000"
-    dragonfly_usb_port = "COM9"
+    dragonfly_usb_port = "COM6"
     serial_num_las_daq = "1D3B333"
     serial_num_cam_daq = "1D17835"
     data_directory = "C:/src/data/data_writer"
@@ -54,8 +54,7 @@ def execute(job, fmt: str, zyla_camera: str):
     (_, _, shape) = array_props_from_string(fmt)
     bin_size = max(2048//shape[1], 2048//shape[2])
 
-    # serial_number = ["VSC-09002", "VSC-08793"]
-    serial_number = ["VSC-10155", "VSC-12515"]
+    serial_number = ["VSC-09002", "VSC-08793"]
 
     job.append(Popen(["lambda_hub",
                       "--inbound=L" + obound,
@@ -98,6 +97,11 @@ def execute(job, fmt: str, zyla_camera: str):
     job.append(Popen(["lambda_microfluidic",
                       "--inbound=L" + obound,
                       "--outbound=L"+ ibound]))
+
+    job.append(Popen(["AndorILE",
+                      "--commands=localhost:" + obound,
+                      "--status=localhost:" + ibound,
+                      "--name=AndorILE"]))
 
     for i, camera_number in enumerate(zyla_cameras):
 

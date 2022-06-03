@@ -100,6 +100,7 @@ class LambdaHub(Hub):
         self._stage_displayer_shutdown()
         self._valve_shutdown()
         self._microfluidic_device_shutdown()
+        self._Andor_ILE_shutdown()
         time.sleep(5)
         self._logger_shutdown()
         self.running = False
@@ -344,6 +345,11 @@ class LambdaHub(Hub):
             name = "ZylaCamera{}".format(i)
             self.send(name + " shutdown")
 
+    def _Andor_ILE_shutdown(self):
+        self.send("AndorILE shutdown")
+
+    def _Andor_ILE_set_nd_filter(self, state):
+        self.send("AndorILE set_nd_filter {}".format(state))
 
     def _flir_camera_start(self):
         for i in self.flir_cameras:
@@ -413,6 +419,9 @@ class LambdaHub(Hub):
 
     def _tracker_set_feat_size(self, feat_size):
         self.send("tracker set_feat_size {}".format(feat_size))
+
+    def _tracker_set_pid(self, kp, ki, kd):
+        self.send("tracker set_pid {} {} {}".format(kp, ki, kd))
 
     def _tracker_set_crop_size(self, crop_size):
         self.send("tracker set_crop_size {}".format(crop_size))
