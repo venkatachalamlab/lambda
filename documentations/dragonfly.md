@@ -1,5 +1,9 @@
 # Dragonfly 200
 
+<p align="center">
+  <img src="https://github.com/venkatachalamlab/lambda/blob/main/figures/dragonfly.jpg" alt="Description of Image" width=400>
+</p>
+
 ## Overview
 Prior research utilizing confocal spinning disks has demonstrated their efficacy in recording brain activity in freely behaving C.elegans and large neuron populations
 , highlighting the reliability of this method for comprehensive neuronal brain imaging. Here, we employ the Dragonfly Spinning Disk from Andor Technologies. 
