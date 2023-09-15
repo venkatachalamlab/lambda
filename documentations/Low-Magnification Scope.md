@@ -1,7 +1,7 @@
 # Low-Magnification Inverted Scope
 
 <p align="center">
-  <img src="https://github.com/venkatachalamlab/lambda/blob/main/figures/low_mag_scope.jpeg" width=800>
+  <img src="https://github.com/venkatachalamlab/lambda/blob/main/figures/front_view_colored.jpeg" width=800>
 </p>
 
 # Overview
